@@ -47,6 +47,7 @@ namespace HLTStudio
 		{
 			"ECWeaverGUI.cmp-gz",
 			"ECWeaver.cmp-gz",
+			"ECWeaver2.cmp-gz",
 		};
 
 		/// <summary>
