@@ -13,13 +13,13 @@ namespace HLTStudio
 		/// アプリケーション名
 		/// 用途：表示・デフォルトのフォルダ名・ショートカット名
 		/// </summary>
-		public static readonly string APPLICATION_NAME = "テスト計算プログラム";
+		public static readonly string APPLICATION_NAME = "ExcelCsvWeaver";
 
 		/// <summary>
 		/// アプリケーション名
 		/// 用途：表示
 		/// </summary>
-		public static readonly string APPLICATION_LONG_NAME = "テスト計算プログラム for Windows";
+		public static readonly string APPLICATION_LONG_NAME = "エクセル CSV 変換・加工プログラム";
 
 		/// <summary>
 		/// デフォルトのインストール先
@@ -45,9 +45,8 @@ namespace HLTStudio
 		/// </summary>
 		public static readonly string[] CLUSTER_FILES = new string[]
 		{
-			"MainProgram.cmp-gz",
-			"KeisanModule.cmp-gz",
-			"CalcUtilities.cmp-gz",
+			"ECWeaverGUI.cmp-gz",
+			"ECWeaver.cmp-gz",
 		};
 
 		/// <summary>
