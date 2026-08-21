@@ -53,6 +53,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CommandLine\CommandLineArgs.cs" />
+    <Compile Include="CommandLine\CommandLineConsts.cs" />
     <Compile Include="Common.cs" />
     <Compile Include="Commons\ArgsReader.cs" />
     <Compile Include="Commons\ProcMain.cs" />

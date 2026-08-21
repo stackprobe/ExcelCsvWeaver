@@ -9,52 +9,52 @@ namespace HLTStudio.CommandLine
 	{
 		private static readonly string[] ValueOptionNames = new string[]
 		{
-			"engine",
-			"encoding",
-			"delimiter",
-			"newline",
-			"input-list",
-			"log",
-			"sheet",
-			"sheets",
-			"range",
-			"password",
-			"columns",
-			"headers",
-			"pattern",
-			"to-excel",
-			"to-csv-dir",
-			"to-same-dir",
-			"output",
-			"index",
-			"from",
-			"to",
-			"regex",
-			"column",
-			"header",
-			"equals",
-			"contains",
-			"key-columns",
-			"printer",
-			"set",
-			"set-file",
+			CommandLineConsts.Options.Engine,
+			CommandLineConsts.Options.Encoding,
+			CommandLineConsts.Options.Delimiter,
+			CommandLineConsts.Options.Newline,
+			CommandLineConsts.Options.InputList,
+			CommandLineConsts.Options.Log,
+			CommandLineConsts.Options.Sheet,
+			CommandLineConsts.Options.Sheets,
+			CommandLineConsts.Options.Range,
+			CommandLineConsts.Options.Password,
+			CommandLineConsts.Options.Columns,
+			CommandLineConsts.Options.Headers,
+			CommandLineConsts.Options.Pattern,
+			CommandLineConsts.Options.ToExcel,
+			CommandLineConsts.Options.ToCsvDir,
+			CommandLineConsts.Options.ToSameDir,
+			CommandLineConsts.Options.Output,
+			CommandLineConsts.Options.Index,
+			CommandLineConsts.Options.From,
+			CommandLineConsts.Options.To,
+			CommandLineConsts.Options.Regex,
+			CommandLineConsts.Options.Column,
+			CommandLineConsts.Options.Header,
+			CommandLineConsts.Options.EqualsCondition,
+			CommandLineConsts.Options.Contains,
+			CommandLineConsts.Options.KeyColumns,
+			CommandLineConsts.Options.Printer,
+			CommandLineConsts.Options.Set,
+			CommandLineConsts.Options.SetFile,
 		};
 
 		private static readonly string[] FlagOptionNames = new string[]
 		{
-			"help",
-			"version",
-			"overwrite",
-			"silent",
-			"verbose",
-			"no-dialog",
-			"has-header",
-			"invert",
-			"skip-header",
-			"numeric",
-			"desc",
-			"stop-on-error",
-			"continue-on-error",
+			CommandLineConsts.Options.Help,
+			CommandLineConsts.Options.Version,
+			CommandLineConsts.Options.Overwrite,
+			CommandLineConsts.Options.Silent,
+			CommandLineConsts.Options.Verbose,
+			CommandLineConsts.Options.NoDialog,
+			CommandLineConsts.Options.HasHeader,
+			CommandLineConsts.Options.Invert,
+			CommandLineConsts.Options.SkipHeader,
+			CommandLineConsts.Options.Numeric,
+			CommandLineConsts.Options.Desc,
+			CommandLineConsts.Options.StopOnError,
+			CommandLineConsts.Options.ContinueOnError,
 		};
 
 		private readonly List<string> _rawArgs = new List<string>();
@@ -143,7 +143,7 @@ namespace HLTStudio.CommandLine
 					if (!hasValue && IsValueOption(name))
 					{
 						if (this._rawArgs.Count <= index + 1)
-							throw new Exception("Missing command line option value: --" + name);
+							throw new Exception("Missing command line option value: " + CommandLineConsts.OptionPrefix + name);
 
 						value = this._rawArgs[++index];
 						hasValue = true;
@@ -186,12 +186,12 @@ namespace HLTStudio.CommandLine
 
 		private static bool IsOptionToken(string token)
 		{
-			return token != null && token.StartsWith("--") && 2 < token.Length;
+			return token != null && token.StartsWith(CommandLineConsts.OptionPrefix) && CommandLineConsts.OptionPrefix.Length < token.Length;
 		}
 
 		private static void SplitOptionToken(string token, out string name, out string value, out bool hasValue)
 		{
-			string option = token.Substring(2);
+			string option = token.Substring(CommandLineConsts.OptionPrefix.Length);
 			int delimiter = option.IndexOf('=');
 
 			if (delimiter == -1)
@@ -218,8 +218,8 @@ namespace HLTStudio.CommandLine
 			if (name == null)
 				throw new ArgumentNullException("name");
 
-			while (name.StartsWith("--"))
-				name = name.Substring(2);
+			while (name.StartsWith(CommandLineConsts.OptionPrefix))
+				name = name.Substring(CommandLineConsts.OptionPrefix.Length);
 
 			return name.ToLowerInvariant();
 		}
