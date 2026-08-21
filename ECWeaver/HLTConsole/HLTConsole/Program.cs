@@ -7,6 +7,7 @@ using System.IO;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Windows.Forms;
+using HLTStudio.CommandLine;
 using HLTStudio.Commons;
 
 namespace HLTStudio
@@ -61,7 +62,7 @@ namespace HLTStudio
 
 		private void Main5(ArgsReader ar)
 		{
-			// TODO
+			CommandLineArgs args = CommandLineArgs.Read(ar);
 		}
 	}
 }
