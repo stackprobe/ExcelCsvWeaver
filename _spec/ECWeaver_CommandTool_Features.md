@@ -13,6 +13,7 @@
 - CSV の読み書き、行列加工、文字コード変換など、Excel 本体が不要な処理は共通仕様として両方に入れる。
 - 既存の C# / .NET Framework 4.8 / x86 構成を維持する。
 - まずは単機能コマンドを増やし、あとから複数処理をつなぐバッチ的な機能を追加する。
+- 複数の Excel / CSV ファイルを混在指定できる統合変換では、入力をいったんシート相当の中間データに正規化し、加工してから出力形式を選ぶ。
 
 ## 既存ツールの位置づけ
 
@@ -37,6 +38,7 @@ Excel アプリケーションを PowerShell COM 経由で操作する。
 - Excel から TSV / SSV 出力
 - CSV / TSV から Excel ブック作成
 - 複数 CSV から複数シート Excel 作成
+- 複数 Excel / CSV 混在入力から 1 ブックまたは CSV 群を作成
 - セル範囲指定で CSV 出力
 - UsedRange のトリム、空行・空列除去
 - シートコピー、削除、リネーム、並び替え
@@ -139,6 +141,7 @@ ECWeaver2.exe <command> [options] <input> <output>
 --delimiter <comma|tab|space|char>
 --sheet <name-or-index>
 --range <A1:D20>
+--input-list <file>
 --log <file>
 --silent
 --verbose
@@ -217,6 +220,53 @@ ECWeaver2.exe excel-to-pdf input.xlsx output.pdf
 - `ECWeaver` は `ExcelAppTools.ToPDF` を使う。
 - `ECWeaver2` は `ExcelInteropTools.ToPDF` を使う。
 - シート指定出力は追加機能として扱う。
+
+### weave
+
+複数の Excel / CSV ファイルを混在入力として受け取り、順番に処理して統合変換する。
+
+```txt
+ECWeaver.exe weave input1.csv input2.xlsx input3.csv --to-excel output.xlsx
+ECWeaver.exe weave input1.csv input2.xlsx input3.csv --to-csv-dir output-dir
+ECWeaver.exe weave input1.csv input2.xlsx input3.csv --to-same-dir output-dir
+ECWeaver.exe weave --input-list files.txt --to-excel output.xlsx
+```
+
+仕様:
+
+- 入力ファイルは複数指定できる。
+- 入力ファイルは `.csv`、`.tsv`、`.ssv`、`.xls`、`.xlsx`、`.xlsm` の混在を許可する。
+- コマンドラインで指定された入力ファイル、または `--input-list` で指定されたリストファイルを、記載順に処理する。
+- `--input-list` は 1 行 1 ファイルの簡易形式とし、空行と `#` コメント行を許可する。
+- CSV / TSV / SSV 入力は、1 ファイルを 1 シート相当の中間データとして扱う。
+- Excel 入力は、シート指定がなければ全シートを順番に読み込み、1 シートを 1 シート相当の中間データとして扱う。
+- 入力処理の過程で、列抽出、行抽出、セル置換、トリム、ソート、シート名変更などの加工を適用できるようにする。
+- 初期版では加工なしの統合変換を優先し、加工指定は段階的に追加する。
+- 出力先が存在する場合は `--overwrite` がない限りエラーにする。
+
+出力モード:
+
+- `--to-excel output.xlsx`
+  - 全ての中間データを、1 つの `.xlsx` ブックのシートとして出力する。
+  - シート名は入力ファイル名と元シート名から生成する。
+  - シート名が重複する場合は `_001`、`_002` のような連番を付ける。
+- `--to-csv-dir output-dir`
+  - 全ての中間データを、CSV ファイル群として指定フォルダへ出力する。
+  - Excel 入力の各シートも、それぞれ 1 CSV として出力する。
+  - 出力ファイル名は入力ファイル名と元シート名から生成する。
+- `--to-same-dir output-dir`
+  - 入力ファイル単位のまとまりを保ち、指定フォルダへ出力する。
+  - CSV / TSV / SSV 入力は、加工後も原則として同種のテキスト形式で出力する。
+  - Excel 入力は、加工後も原則として Excel ブックとして出力する。
+  - ただし、加工内容が元形式で保持できない場合はエラーにするか、明示オプションで変換を許可する。
+
+中間データの考え方:
+
+- 内部では、入力順を保持した `WorkbookUnit` と `SheetUnit` のような構造に正規化する。
+- `WorkbookUnit` は元入力ファイルの単位を表す。
+- `SheetUnit` は CSV 1 ファイル、または Excel 1 シートに相当する表データを表す。
+- 出力モードは、この中間データを `.xlsx`、CSV 群、または入力ファイル単位の出力に変換するだけにする。
+- 将来の加工機能は、中間データに対する処理として追加する。
 
 ## CSV 加工系コマンド
 
@@ -524,6 +574,7 @@ ECWeaver.exe watch input-dir output-dir --command excel-to-csv
 
 - `csv-to-excel`
 - `csvs-to-excel`
+- `weave` の加工なし統合変換
 - `excel-list-sheets`
 - `excel-extract-pictures`
 - `excel-replace-picture`
@@ -550,6 +601,7 @@ ECWeaver.exe watch input-dir output-dir --command excel-to-csv
 
 ### Phase 5: 自動化
 
+- `weave` の加工パイプライン拡張
 - `run-script`
 - `watch`
 - 処理ログの構造化
