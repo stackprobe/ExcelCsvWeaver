@@ -16,6 +16,7 @@
 - Excel 操作エンジンは `--engine` で選択できる。
 - `--engine` 未指定時は `auto` として扱う。
 - CSV 系コマンドは Excel 操作エンジンを使わない。
+- 複数の Excel / CSV ファイルを混在入力できる統合変換では、入力をいったんシート相当の中間データに正規化してから出力形式を選ぶ。
 - GUI からも同じコマンド定義を利用できるよう、各コマンドは単一責務にする。
 
 ## 実行形式
@@ -155,6 +156,21 @@ CSV 系ファイルの区切り文字を指定する。
 仕様:
 
 - 未指定時は `crlf` とする。
+
+### --input-list
+
+複数入力ファイルをリストファイルで指定する。
+
+```txt
+--input-list files.txt
+```
+
+仕様:
+
+- 1 行 1 ファイルの簡易形式とする。
+- 空行を無視する。
+- `#` で始まる行をコメントとして扱う。
+- コマンドライン上の入力ファイル群と併用できるかは、各コマンド仕様で定義する。
 
 ### --log
 
@@ -449,6 +465,75 @@ interop
 
 - 初期版ではブック全体の PDF 出力を必須対応とする。
 - シート指定 PDF 出力は追加対応とする。
+
+### weave
+
+複数の Excel / CSV ファイルを混在入力として受け取り、順番に処理して統合変換する。
+
+```txt
+ECWeaver.exe weave [options] <input-file>... --to-excel <output-excel>
+ECWeaver.exe weave [options] <input-file>... --to-csv-dir <output-dir>
+ECWeaver.exe weave [options] <input-file>... --to-same-dir <output-dir>
+ECWeaver.exe weave [options] --input-list <list-file> --to-excel <output-excel>
+```
+
+対応 engine:
+
+```txt
+auto
+app
+interop
+```
+
+オプション:
+
+```txt
+--input-list <list-file>
+--to-excel <output-excel>
+--to-csv-dir <output-dir>
+--to-same-dir <output-dir>
+--sheet <name-or-index>
+--sheets <names-or-indexes>
+--encoding <encoding>
+--delimiter <delimiter>
+--overwrite
+```
+
+仕様:
+
+- 入力ファイルは複数指定できる。
+- 入力ファイルは `.csv`、`.tsv`、`.ssv`、`.xls`、`.xlsx`、`.xlsm` の混在を許可する。
+- コマンドラインで指定された入力ファイル、または `--input-list` で指定されたリストファイルを、記載順に処理する。
+- `<input-file>...` と `--input-list` の同時指定は初期版ではエラーにする。
+- `--input-list` は共通オプション仕様に従う。
+- CSV / TSV / SSV 入力は、1 ファイルを 1 シート相当の中間データとして扱う。
+- Excel 入力は、シート指定がなければ全シートを順番に読み込み、1 シートを 1 シート相当の中間データとして扱う。
+- `--sheet` / `--sheets` は Excel 入力にだけ適用する。
+- `--to-excel`、`--to-csv-dir`、`--to-same-dir` のいずれか 1 つを必須とする。
+- 出力モードの複数同時指定はエラーにする。
+- 出力先が存在する場合は `--overwrite` がない限りエラーにする。
+- 初期版では加工なしの統合変換を優先し、加工指定は段階的に追加する。
+
+出力モード:
+
+- `--to-excel <output-excel>` は、全ての中間データを 1 つの `.xlsx` ブックのシートとして出力する。
+- `--to-csv-dir <output-dir>` は、全ての中間データを CSV ファイル群として指定フォルダへ出力する。
+- `--to-same-dir <output-dir>` は、入力ファイル単位のまとまりを保ち、指定フォルダへ出力する。
+
+名前生成:
+
+- `--to-excel` のシート名は入力ファイル名と元シート名から生成する。
+- `--to-csv-dir` の出力ファイル名は入力ファイル名と元シート名から生成する。
+- 名前が重複する場合は `_001`、`_002` のような連番を付ける。
+- Excel のシート名として使えない文字や長すぎる名前は、安全な名前へ変換する。
+
+中間データ:
+
+- 内部では、入力順を保持した `WorkbookUnit` と `SheetUnit` のような構造に正規化する。
+- `WorkbookUnit` は元入力ファイルの単位を表す。
+- `SheetUnit` は CSV 1 ファイル、または Excel 1 シートに相当する表データを表す。
+- 出力モードは、この中間データを `.xlsx`、CSV 群、または入力ファイル単位の出力に変換するだけにする。
+- 将来の加工機能は、中間データに対する処理として追加する。
 
 ## CSV 加工系
 
@@ -1049,6 +1134,7 @@ csv-replace
 ```txt
 csv-to-excel
 csvs-to-excel
+weave
 excel-list-sheets
 excel-info
 excel-extract-pictures
@@ -1074,6 +1160,7 @@ print
 ```txt
 excel-replace-text
 excel-replace-placeholder
+weave の加工パイプライン拡張
 run-script
 ```
 
