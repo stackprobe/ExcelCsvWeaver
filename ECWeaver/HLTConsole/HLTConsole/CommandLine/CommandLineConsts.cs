@@ -4,6 +4,77 @@
 	{
 		public const string OptionPrefix = "--";
 
+		private static readonly string[] ValueOptionNames = new string[]
+		{
+			Options.Engine,
+			Options.Encoding,
+			Options.Delimiter,
+			Options.Newline,
+			Options.InputList,
+			Options.Log,
+			Options.Sheet,
+			Options.Sheets,
+			Options.Range,
+			Options.Password,
+			Options.Columns,
+			Options.Headers,
+			Options.Pattern,
+			Options.ToExcel,
+			Options.ToCsvDir,
+			Options.ToSameDir,
+			Options.Output,
+			Options.Index,
+			Options.From,
+			Options.To,
+			Options.Regex,
+			Options.Column,
+			Options.Header,
+			Options.EqualsCondition,
+			Options.Contains,
+			Options.KeyColumns,
+			Options.Printer,
+			Options.Set,
+			Options.SetFile,
+		};
+
+		private static readonly string[] FlagOptionNames = new string[]
+		{
+			Options.Help,
+			Options.Version,
+			Options.Overwrite,
+			Options.Silent,
+			Options.Verbose,
+			Options.NoDialog,
+			Options.HasHeader,
+			Options.Invert,
+			Options.SkipHeader,
+			Options.Numeric,
+			Options.Desc,
+			Options.StopOnError,
+			Options.ContinueOnError,
+		};
+
+		public static bool IsValueOption(string name)
+		{
+			return System.Linq.Enumerable.Contains(ValueOptionNames, NormalizeOptionName(name), System.StringComparer.OrdinalIgnoreCase);
+		}
+
+		public static bool IsFlagOption(string name)
+		{
+			return System.Linq.Enumerable.Contains(FlagOptionNames, NormalizeOptionName(name), System.StringComparer.OrdinalIgnoreCase);
+		}
+
+		public static string NormalizeOptionName(string name)
+		{
+			if (name == null)
+				throw new System.ArgumentNullException("name");
+
+			while (name.StartsWith(OptionPrefix))
+				name = name.Substring(OptionPrefix.Length);
+
+			return name.ToLowerInvariant();
+		}
+
 		public static class Commands
 		{
 			public const string Help = "help";

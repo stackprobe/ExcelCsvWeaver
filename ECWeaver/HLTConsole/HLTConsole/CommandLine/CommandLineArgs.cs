@@ -7,56 +7,6 @@ namespace HLTStudio.CommandLine
 {
 	public class CommandLineArgs
 	{
-		private static readonly string[] ValueOptionNames = new string[]
-		{
-			CommandLineConsts.Options.Engine,
-			CommandLineConsts.Options.Encoding,
-			CommandLineConsts.Options.Delimiter,
-			CommandLineConsts.Options.Newline,
-			CommandLineConsts.Options.InputList,
-			CommandLineConsts.Options.Log,
-			CommandLineConsts.Options.Sheet,
-			CommandLineConsts.Options.Sheets,
-			CommandLineConsts.Options.Range,
-			CommandLineConsts.Options.Password,
-			CommandLineConsts.Options.Columns,
-			CommandLineConsts.Options.Headers,
-			CommandLineConsts.Options.Pattern,
-			CommandLineConsts.Options.ToExcel,
-			CommandLineConsts.Options.ToCsvDir,
-			CommandLineConsts.Options.ToSameDir,
-			CommandLineConsts.Options.Output,
-			CommandLineConsts.Options.Index,
-			CommandLineConsts.Options.From,
-			CommandLineConsts.Options.To,
-			CommandLineConsts.Options.Regex,
-			CommandLineConsts.Options.Column,
-			CommandLineConsts.Options.Header,
-			CommandLineConsts.Options.EqualsCondition,
-			CommandLineConsts.Options.Contains,
-			CommandLineConsts.Options.KeyColumns,
-			CommandLineConsts.Options.Printer,
-			CommandLineConsts.Options.Set,
-			CommandLineConsts.Options.SetFile,
-		};
-
-		private static readonly string[] FlagOptionNames = new string[]
-		{
-			CommandLineConsts.Options.Help,
-			CommandLineConsts.Options.Version,
-			CommandLineConsts.Options.Overwrite,
-			CommandLineConsts.Options.Silent,
-			CommandLineConsts.Options.Verbose,
-			CommandLineConsts.Options.NoDialog,
-			CommandLineConsts.Options.HasHeader,
-			CommandLineConsts.Options.Invert,
-			CommandLineConsts.Options.SkipHeader,
-			CommandLineConsts.Options.Numeric,
-			CommandLineConsts.Options.Desc,
-			CommandLineConsts.Options.StopOnError,
-			CommandLineConsts.Options.ContinueOnError,
-		};
-
 		private readonly List<string> _rawArgs = new List<string>();
 		private readonly List<string> _arguments = new List<string>();
 		private readonly Dictionary<string, List<string>> _options = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
@@ -103,7 +53,7 @@ namespace HLTStudio.CommandLine
 
 		public bool HasOption(string name)
 		{
-			return this._options.ContainsKey(NormalizeOptionName(name));
+			return this._options.ContainsKey(CommandLineConsts.NormalizeOptionName(name));
 		}
 
 		public string GetOptionValue(string name, string defaultValue = null)
@@ -120,7 +70,7 @@ namespace HLTStudio.CommandLine
 		{
 			List<string> values;
 
-			if (this._options.TryGetValue(NormalizeOptionName(name), out values))
+			if (this._options.TryGetValue(CommandLineConsts.NormalizeOptionName(name), out values))
 				return values.ToArray();
 
 			return new string[0];
@@ -140,7 +90,7 @@ namespace HLTStudio.CommandLine
 
 					SplitOptionToken(arg, out name, out value, out hasValue);
 
-					if (!hasValue && IsValueOption(name))
+					if (!hasValue && CommandLineConsts.IsValueOption(name))
 					{
 						if (this._rawArgs.Count <= index + 1)
 							throw new Exception("Missing command line option value: " + CommandLineConsts.OptionPrefix + name);
@@ -148,7 +98,7 @@ namespace HLTStudio.CommandLine
 						value = this._rawArgs[++index];
 						hasValue = true;
 					}
-					else if (!hasValue && !IsFlagOption(name))
+					else if (!hasValue && !CommandLineConsts.IsFlagOption(name))
 					{
 						if (index + 1 < this._rawArgs.Count && !IsOptionToken(this._rawArgs[index + 1]))
 						{
@@ -172,7 +122,7 @@ namespace HLTStudio.CommandLine
 
 		private void AddOption(string name, string value)
 		{
-			name = NormalizeOptionName(name);
+			name = CommandLineConsts.NormalizeOptionName(name);
 
 			List<string> values;
 
@@ -207,31 +157,11 @@ namespace HLTStudio.CommandLine
 				hasValue = true;
 			}
 
-			name = NormalizeOptionName(name);
+			name = CommandLineConsts.NormalizeOptionName(name);
 
 			if (name.Length == 0)
 				throw new Exception("Bad command line option: " + token);
 		}
 
-		private static string NormalizeOptionName(string name)
-		{
-			if (name == null)
-				throw new ArgumentNullException("name");
-
-			while (name.StartsWith(CommandLineConsts.OptionPrefix))
-				name = name.Substring(CommandLineConsts.OptionPrefix.Length);
-
-			return name.ToLowerInvariant();
-		}
-
-		private static bool IsValueOption(string name)
-		{
-			return ValueOptionNames.Contains(NormalizeOptionName(name), StringComparer.OrdinalIgnoreCase);
-		}
-
-		private static bool IsFlagOption(string name)
-		{
-			return FlagOptionNames.Contains(NormalizeOptionName(name), StringComparer.OrdinalIgnoreCase);
-		}
 	}
 }
