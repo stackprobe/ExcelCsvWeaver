@@ -5,12 +5,13 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using HLTStudio.CommandLine;
 using HLTStudio.Commons;
 using HLTStudio.Tools;
 
-namespace HLTStudio.CommandLine
+namespace HLTStudio.Commands
 {
-	public class CommandLineCommandRunner
+	public class CommandProcessor
 	{
 		private CommandLineArgs Args;
 
