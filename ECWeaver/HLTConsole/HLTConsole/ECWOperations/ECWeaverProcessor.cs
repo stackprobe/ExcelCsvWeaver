@@ -5,35 +5,35 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
-using HLTStudio.CommandLine;
+using HLTStudio.ECWArguments;
 using HLTStudio.Commons;
 using HLTStudio.Tools;
 
-namespace HLTStudio.Commands
+namespace HLTStudio.ECWOperations
 {
-	public class CommandProcessor
+	public class ECWeaverProcessor
 	{
-		private CommandLineArgs Args;
+		private ECWeaverArgs Args;
 
-		public void Run(CommandLineArgs args)
+		public void Run(ECWeaverArgs args)
 		{
 			if (args == null)
 				throw new ArgumentNullException("args");
 
 			this.Args = args;
 
-			if (this.Args.HasOption(CommandLineConsts.Options.Help))
+			if (this.Args.HasOption(ECWeaverArgConsts.Options.Help))
 			{
-				this.ShowHelp(this.Args.Command);
+				this.ShowHelp(this.Args.Operation);
 				return;
 			}
-			if (this.Args.HasOption(CommandLineConsts.Options.Version))
+			if (this.Args.HasOption(ECWeaverArgConsts.Options.Version))
 			{
 				this.ShowVersion();
 				return;
 			}
 
-			string command = this.Args.Command;
+			string command = this.Args.Operation;
 
 			if (string.IsNullOrEmpty(command))
 			{
@@ -43,85 +43,85 @@ namespace HLTStudio.Commands
 
 			switch (command.ToLowerInvariant())
 			{
-				case CommandLineConsts.Commands.Help:
+				case ECWeaverArgConsts.Operations.Help:
 					this.ShowHelp(this.Args.Arguments.FirstOrDefault());
 					break;
 
-				case CommandLineConsts.Commands.Version:
+				case ECWeaverArgConsts.Operations.Version:
 					this.ShowVersion();
 					break;
 
-				case CommandLineConsts.Commands.ExcelToCsv:
+				case ECWeaverArgConsts.Operations.ExcelToCsv:
 					this.ExcelToCsv(CsvFileWriter.DELIMITER_COMMA);
 					break;
 
-				case CommandLineConsts.Commands.ExcelToTsv:
+				case ECWeaverArgConsts.Operations.ExcelToTsv:
 					this.ExcelToCsv(CsvFileWriter.DELIMITER_TAB);
 					break;
 
-				case CommandLineConsts.Commands.ExcelToPdf:
+				case ECWeaverArgConsts.Operations.ExcelToPdf:
 					this.ExcelToPdf();
 					break;
 
-				case CommandLineConsts.Commands.CsvInfo:
+				case ECWeaverArgConsts.Operations.CsvInfo:
 					this.CsvInfo();
 					break;
 
-				case CommandLineConsts.Commands.CsvSelectColumns:
+				case ECWeaverArgConsts.Operations.CsvSelectColumns:
 					this.CsvSelectColumns();
 					break;
 
-				case CommandLineConsts.Commands.CsvFilterRows:
+				case ECWeaverArgConsts.Operations.CsvFilterRows:
 					this.CsvFilterRows();
 					break;
 
-				case CommandLineConsts.Commands.CsvReplace:
+				case ECWeaverArgConsts.Operations.CsvReplace:
 					this.CsvReplace();
 					break;
 
-				case CommandLineConsts.Commands.CsvMerge:
+				case ECWeaverArgConsts.Operations.CsvMerge:
 					this.CsvMerge();
 					break;
 
-				case CommandLineConsts.Commands.CsvSort:
+				case ECWeaverArgConsts.Operations.CsvSort:
 					this.CsvSort();
 					break;
 
-				case CommandLineConsts.Commands.CsvUnique:
+				case ECWeaverArgConsts.Operations.CsvUnique:
 					this.CsvUnique();
 					break;
 
-				case CommandLineConsts.Commands.ExcelListSheets:
+				case ECWeaverArgConsts.Operations.ExcelListSheets:
 					this.ExcelListSheets();
 					break;
 
-				case CommandLineConsts.Commands.ExcelExtractPictures:
+				case ECWeaverArgConsts.Operations.ExcelExtractPictures:
 					this.ExcelExtractPictures();
 					break;
 
-				case CommandLineConsts.Commands.ExcelReplacePicture:
+				case ECWeaverArgConsts.Operations.ExcelReplacePicture:
 					this.ExcelReplacePicture();
 					break;
 
-				case CommandLineConsts.Commands.Printers:
+				case ECWeaverArgConsts.Operations.Printers:
 					this.Printers();
 					break;
 
-				case CommandLineConsts.Commands.Print:
+				case ECWeaverArgConsts.Operations.Print:
 					this.Print();
 					break;
 
-				case CommandLineConsts.Commands.CsvToExcel:
-				case CommandLineConsts.Commands.CsvsToExcel:
-				case CommandLineConsts.Commands.Weave:
-				case CommandLineConsts.Commands.ExcelInfo:
-				case CommandLineConsts.Commands.ExcelReplaceText:
-				case CommandLineConsts.Commands.ExcelReplacePlaceholder:
-				case CommandLineConsts.Commands.CsvValidate:
-				case CommandLineConsts.Commands.ExcelValidate:
-				case CommandLineConsts.Commands.CsvDiff:
-				case CommandLineConsts.Commands.ExcelDiff:
-				case CommandLineConsts.Commands.RunScript:
+				case ECWeaverArgConsts.Operations.CsvToExcel:
+				case ECWeaverArgConsts.Operations.CsvsToExcel:
+				case ECWeaverArgConsts.Operations.Weave:
+				case ECWeaverArgConsts.Operations.ExcelInfo:
+				case ECWeaverArgConsts.Operations.ExcelReplaceText:
+				case ECWeaverArgConsts.Operations.ExcelReplacePlaceholder:
+				case ECWeaverArgConsts.Operations.CsvValidate:
+				case ECWeaverArgConsts.Operations.ExcelValidate:
+				case ECWeaverArgConsts.Operations.CsvDiff:
+				case ECWeaverArgConsts.Operations.ExcelDiff:
+				case ECWeaverArgConsts.Operations.RunScript:
 					throw new Exception("This command is not implemented in ECWeaver yet: " + command);
 
 				default:
@@ -154,31 +154,31 @@ namespace HLTStudio.Commands
 
 			switch (command.ToLowerInvariant())
 			{
-				case CommandLineConsts.Commands.ExcelToCsv:
+				case ECWeaverArgConsts.Operations.ExcelToCsv:
 					this.WriteOutput("Usage: ECWeaver.exe excel-to-csv [--sheet <name-or-index>] [--overwrite] <input-excel> <output-dir-or-csv>");
 					break;
 
-				case CommandLineConsts.Commands.ExcelToTsv:
+				case ECWeaverArgConsts.Operations.ExcelToTsv:
 					this.WriteOutput("Usage: ECWeaver.exe excel-to-tsv [--sheet <name-or-index>] [--overwrite] <input-excel> <output-dir-or-tsv>");
 					break;
 
-				case CommandLineConsts.Commands.ExcelToPdf:
+				case ECWeaverArgConsts.Operations.ExcelToPdf:
 					this.WriteOutput("Usage: ECWeaver.exe excel-to-pdf [--overwrite] <input-excel> <output-pdf>");
 					break;
 
-				case CommandLineConsts.Commands.CsvInfo:
+				case ECWeaverArgConsts.Operations.CsvInfo:
 					this.WriteOutput("Usage: ECWeaver.exe csv-info [--encoding <encoding>] [--delimiter <delimiter>] <input-csv>");
 					break;
 
-				case CommandLineConsts.Commands.CsvSelectColumns:
+				case ECWeaverArgConsts.Operations.CsvSelectColumns:
 					this.WriteOutput("Usage: ECWeaver.exe csv-select-columns (--columns <indexes>|--headers <names>) [--overwrite] <input-csv> <output-csv>");
 					break;
 
-				case CommandLineConsts.Commands.CsvFilterRows:
+				case ECWeaverArgConsts.Operations.CsvFilterRows:
 					this.WriteOutput("Usage: ECWeaver.exe csv-filter-rows (--column <index>|--header <name>) (--equals <text>|--contains <text>|--regex <pattern>) [--invert] [--overwrite] <input-csv> <output-csv>");
 					break;
 
-				case CommandLineConsts.Commands.CsvReplace:
+				case ECWeaverArgConsts.Operations.CsvReplace:
 					this.WriteOutput("Usage: ECWeaver.exe csv-replace (--from <text>|--regex <pattern>) --to <text> [--column <index>|--header <name>] [--overwrite] <input-csv> <output-csv>");
 					break;
 
@@ -201,8 +201,8 @@ namespace HLTStudio.Commands
 
 			string inputExcel = this.Args.Arguments[0];
 			string outputPath = this.Args.Arguments[1];
-			string sheet = this.Args.GetOptionValue(CommandLineConsts.Options.Sheet);
-			string sheets = this.Args.GetOptionValue(CommandLineConsts.Options.Sheets);
+			string sheet = this.Args.GetOptionValue(ECWeaverArgConsts.Options.Sheet);
+			string sheets = this.Args.GetOptionValue(ECWeaverArgConsts.Options.Sheets);
 			char delimiter = this.GetDelimiter(defaultDelimiter, outputPath);
 			Encoding encoding = this.GetOutputEncoding();
 			ExcelAppTools.Sheet[] loadedSheets = ExcelAppTools.LoadSheets(inputExcel);
@@ -267,16 +267,16 @@ namespace HLTStudio.Commands
 			this.CheckArgCount(2);
 			this.CheckNoCsvEngine();
 
-			bool hasColumns = this.Args.HasOption(CommandLineConsts.Options.Columns);
-			bool hasHeaders = this.Args.HasOption(CommandLineConsts.Options.Headers);
+			bool hasColumns = this.Args.HasOption(ECWeaverArgConsts.Options.Columns);
+			bool hasHeaders = this.Args.HasOption(ECWeaverArgConsts.Options.Headers);
 
 			if (hasColumns == hasHeaders)
 				throw new Exception("Specify either --columns or --headers.");
 
 			string[][] rows = this.ReadCsv(this.Args.Arguments[0]);
 			int[] indexes = hasColumns ?
-				this.ParseColumnIndexes(this.Args.GetOptionValue(CommandLineConsts.Options.Columns)) :
-				this.GetHeaderIndexes(rows, this.ParseCsvList(this.Args.GetOptionValue(CommandLineConsts.Options.Headers)));
+				this.ParseColumnIndexes(this.Args.GetOptionValue(ECWeaverArgConsts.Options.Columns)) :
+				this.GetHeaderIndexes(rows, this.ParseCsvList(this.Args.GetOptionValue(ECWeaverArgConsts.Options.Headers)));
 
 			this.CheckColumnIndexes(rows, indexes);
 
@@ -294,17 +294,17 @@ namespace HLTStudio.Commands
 
 			string[][] rows = this.ReadCsv(this.Args.Arguments[0]);
 			int columnIndex = this.GetSingleColumnIndex(rows);
-			string equalsValue = this.Args.GetOptionValue(CommandLineConsts.Options.EqualsCondition);
-			string containsValue = this.Args.GetOptionValue(CommandLineConsts.Options.Contains);
-			string regexValue = this.Args.GetOptionValue(CommandLineConsts.Options.Regex);
+			string equalsValue = this.Args.GetOptionValue(ECWeaverArgConsts.Options.EqualsCondition);
+			string containsValue = this.Args.GetOptionValue(ECWeaverArgConsts.Options.Contains);
+			string regexValue = this.Args.GetOptionValue(ECWeaverArgConsts.Options.Regex);
 			int conditionCount = new string[] { equalsValue, containsValue, regexValue }.Count(value => value != null);
 
 			if (conditionCount != 1)
 				throw new Exception("Specify one of --equals, --contains, or --regex.");
 
 			Regex regex = regexValue == null ? null : new Regex(regexValue);
-			bool invert = this.Args.HasOption(CommandLineConsts.Options.Invert);
-			bool hasHeader = this.Args.HasOption(CommandLineConsts.Options.HasHeader) || this.Args.HasOption(CommandLineConsts.Options.Header);
+			bool invert = this.Args.HasOption(ECWeaverArgConsts.Options.Invert);
+			bool hasHeader = this.Args.HasOption(ECWeaverArgConsts.Options.HasHeader) || this.Args.HasOption(ECWeaverArgConsts.Options.Header);
 			List<string[]> destRows = new List<string[]>();
 
 			for (int index = 0; index < rows.Length; index++)
@@ -336,9 +336,9 @@ namespace HLTStudio.Commands
 			this.CheckArgCount(2);
 			this.CheckNoCsvEngine();
 
-			string from = this.Args.GetOptionValue(CommandLineConsts.Options.From);
-			string regexValue = this.Args.GetOptionValue(CommandLineConsts.Options.Regex);
-			string to = this.Args.GetOptionValue(CommandLineConsts.Options.To);
+			string from = this.Args.GetOptionValue(ECWeaverArgConsts.Options.From);
+			string regexValue = this.Args.GetOptionValue(ECWeaverArgConsts.Options.Regex);
+			string to = this.Args.GetOptionValue(ECWeaverArgConsts.Options.To);
 
 			if (to == null)
 				throw new Exception("Missing --to.");
@@ -349,7 +349,7 @@ namespace HLTStudio.Commands
 			string[][] rows = this.ReadCsv(this.Args.Arguments[0]);
 			int? columnIndex = null;
 
-			if (this.Args.HasOption(CommandLineConsts.Options.Column) || this.Args.HasOption(CommandLineConsts.Options.Header))
+			if (this.Args.HasOption(ECWeaverArgConsts.Options.Column) || this.Args.HasOption(ECWeaverArgConsts.Options.Header))
 				columnIndex = this.GetSingleColumnIndex(rows);
 
 			Regex regex = regexValue == null ? null : new Regex(regexValue);
@@ -374,14 +374,14 @@ namespace HLTStudio.Commands
 
 			string inputDir = this.Args.Arguments[0];
 			string outputCsv = this.Args.Arguments[1];
-			string pattern = this.Args.GetOptionValue(CommandLineConsts.Options.Pattern, "*.csv");
+			string pattern = this.Args.GetOptionValue(ECWeaverArgConsts.Options.Pattern, "*.csv");
 
 			if (!Directory.Exists(inputDir))
 				throw new Exception("Input directory not found: " + inputDir);
 
 			string[] files = Directory.GetFiles(inputDir, pattern).OrderBy(SCommon.CompIgnoreCase).ToArray();
 			List<string[]> destRows = new List<string[]>();
-			bool skipHeader = this.Args.HasOption(CommandLineConsts.Options.SkipHeader);
+			bool skipHeader = this.Args.HasOption(ECWeaverArgConsts.Options.SkipHeader);
 
 			for (int fileIndex = 0; fileIndex < files.Length; fileIndex++)
 			{
@@ -403,10 +403,10 @@ namespace HLTStudio.Commands
 
 			string[][] rows = this.ReadCsv(this.Args.Arguments[0]);
 			int columnIndex = this.GetSingleColumnIndex(rows);
-			bool hasHeader = this.Args.HasOption(CommandLineConsts.Options.HasHeader) || this.Args.HasOption(CommandLineConsts.Options.Header);
+			bool hasHeader = this.Args.HasOption(ECWeaverArgConsts.Options.HasHeader) || this.Args.HasOption(ECWeaverArgConsts.Options.Header);
 			List<string[]> bodyRows = rows.Skip(hasHeader ? 1 : 0).ToList();
-			bool numeric = this.Args.HasOption(CommandLineConsts.Options.Numeric);
-			bool desc = this.Args.HasOption(CommandLineConsts.Options.Desc);
+			bool numeric = this.Args.HasOption(ECWeaverArgConsts.Options.Numeric);
+			bool desc = this.Args.HasOption(ECWeaverArgConsts.Options.Desc);
 
 			bodyRows.Sort((a, b) =>
 			{
@@ -447,8 +447,8 @@ namespace HLTStudio.Commands
 			this.CheckNoCsvEngine();
 
 			string[][] rows = this.ReadCsv(this.Args.Arguments[0]);
-			bool hasColumns = this.Args.HasOption(CommandLineConsts.Options.Columns);
-			bool hasHeaders = this.Args.HasOption(CommandLineConsts.Options.Headers);
+			bool hasColumns = this.Args.HasOption(ECWeaverArgConsts.Options.Columns);
+			bool hasHeaders = this.Args.HasOption(ECWeaverArgConsts.Options.Headers);
 
 			if (hasColumns && hasHeaders)
 				throw new Exception("--columns and --headers cannot be used together.");
@@ -456,9 +456,9 @@ namespace HLTStudio.Commands
 			int[] indexes = null;
 
 			if (hasColumns)
-				indexes = this.ParseColumnIndexes(this.Args.GetOptionValue(CommandLineConsts.Options.Columns));
+				indexes = this.ParseColumnIndexes(this.Args.GetOptionValue(ECWeaverArgConsts.Options.Columns));
 			else if (hasHeaders)
-				indexes = this.GetHeaderIndexes(rows, this.ParseCsvList(this.Args.GetOptionValue(CommandLineConsts.Options.Headers)));
+				indexes = this.GetHeaderIndexes(rows, this.ParseCsvList(this.Args.GetOptionValue(ECWeaverArgConsts.Options.Headers)));
 
 			if (indexes != null)
 				this.CheckColumnIndexes(rows, indexes);
@@ -487,7 +487,7 @@ namespace HLTStudio.Commands
 			string inputExcel = this.Args.Arguments[0];
 			ExcelAppTools.Sheet[] sheets = ExcelAppTools.LoadSheets(inputExcel);
 			string[] lines = sheets.Select((sheet, index) => (index + 1) + "\t" + sheet.Name).ToArray();
-			string output = this.Args.GetOptionValue(CommandLineConsts.Options.Output);
+			string output = this.Args.GetOptionValue(ECWeaverArgConsts.Options.Output);
 
 			if (string.IsNullOrEmpty(output))
 			{
@@ -528,7 +528,7 @@ namespace HLTStudio.Commands
 			string inputExcel = this.Args.Arguments[0];
 			string outputExcel = this.Args.Arguments[1];
 			string pictureFile = this.Args.Arguments[2];
-			string indexText = this.Args.GetOptionValue(CommandLineConsts.Options.Index);
+			string indexText = this.Args.GetOptionValue(ECWeaverArgConsts.Options.Index);
 			int? targetIndex = null;
 
 			if (indexText != null)
@@ -563,7 +563,7 @@ namespace HLTStudio.Commands
 			this.CheckArgCount(1);
 			this.CheckAppEngine();
 
-			ExcelAppTools.Print(this.Args.Arguments[0], this.Args.GetOptionValue(CommandLineConsts.Options.Printer));
+			ExcelAppTools.Print(this.Args.Arguments[0], this.Args.GetOptionValue(ECWeaverArgConsts.Options.Printer));
 		}
 
 		private void CheckArgCount(int count)
@@ -574,23 +574,23 @@ namespace HLTStudio.Commands
 
 		private void CheckNoCsvEngine()
 		{
-			if (this.Args.HasOption(CommandLineConsts.Options.Engine))
+			if (this.Args.HasOption(ECWeaverArgConsts.Options.Engine))
 				throw new Exception("--engine cannot be used for this command.");
 		}
 
 		private void CheckAppEngine()
 		{
-			string engine = this.Args.GetOptionValue(CommandLineConsts.Options.Engine, CommandLineConsts.Values.Auto);
+			string engine = this.Args.GetOptionValue(ECWeaverArgConsts.Options.Engine, ECWeaverArgConsts.Values.Auto);
 
-			if (!engine.EqualsIgnoreCase(CommandLineConsts.Values.Auto) && !engine.EqualsIgnoreCase(CommandLineConsts.Values.App))
+			if (!engine.EqualsIgnoreCase(ECWeaverArgConsts.Values.Auto) && !engine.EqualsIgnoreCase(ECWeaverArgConsts.Values.App))
 				throw new Exception("Unsupported engine for ECWeaver: " + engine);
 		}
 
 		private void CheckZipEngine()
 		{
-			string engine = this.Args.GetOptionValue(CommandLineConsts.Options.Engine, CommandLineConsts.Values.Auto);
+			string engine = this.Args.GetOptionValue(ECWeaverArgConsts.Options.Engine, ECWeaverArgConsts.Values.Auto);
 
-			if (!engine.EqualsIgnoreCase(CommandLineConsts.Values.Auto) && !engine.EqualsIgnoreCase(CommandLineConsts.Values.Zip))
+			if (!engine.EqualsIgnoreCase(ECWeaverArgConsts.Values.Auto) && !engine.EqualsIgnoreCase(ECWeaverArgConsts.Values.Zip))
 				throw new Exception("Unsupported engine for this command: " + engine);
 		}
 
@@ -643,7 +643,7 @@ namespace HLTStudio.Commands
 			if (!SCommon.IsExistsPath(file))
 				return;
 
-			if (!this.Args.HasOption(CommandLineConsts.Options.Overwrite))
+			if (!this.Args.HasOption(ECWeaverArgConsts.Options.Overwrite))
 				throw new Exception("Output path already exists: " + file);
 
 			SCommon.DeletePath(file);
@@ -656,7 +656,7 @@ namespace HLTStudio.Commands
 
 			if (SCommon.IsExistsPath(dir))
 			{
-				if (!this.Args.HasOption(CommandLineConsts.Options.Overwrite))
+				if (!this.Args.HasOption(ECWeaverArgConsts.Options.Overwrite))
 					throw new Exception("Output path already exists: " + dir);
 
 				SCommon.DeletePath(dir);
@@ -666,9 +666,9 @@ namespace HLTStudio.Commands
 
 		private Encoding GetInputEncoding()
 		{
-			string value = this.Args.GetOptionValue(CommandLineConsts.Options.Encoding, CommandLineConsts.Values.Auto);
+			string value = this.Args.GetOptionValue(ECWeaverArgConsts.Options.Encoding, ECWeaverArgConsts.Values.Auto);
 
-			if (value.EqualsIgnoreCase(CommandLineConsts.Values.Auto))
+			if (value.EqualsIgnoreCase(ECWeaverArgConsts.Values.Auto))
 				return null;
 
 			return ParseEncoding(value);
@@ -676,9 +676,9 @@ namespace HLTStudio.Commands
 
 		private Encoding GetOutputEncoding()
 		{
-			string value = this.Args.GetOptionValue(CommandLineConsts.Options.Encoding, CommandLineConsts.Values.Sjis);
+			string value = this.Args.GetOptionValue(ECWeaverArgConsts.Options.Encoding, ECWeaverArgConsts.Values.Sjis);
 
-			if (value.EqualsIgnoreCase(CommandLineConsts.Values.Auto))
+			if (value.EqualsIgnoreCase(ECWeaverArgConsts.Values.Auto))
 				return SCommon.ENCODING_SJIS;
 
 			return ParseEncoding(value);
@@ -686,16 +686,16 @@ namespace HLTStudio.Commands
 
 		private static Encoding ParseEncoding(string value)
 		{
-			if (value.EqualsIgnoreCase(CommandLineConsts.Values.Sjis))
+			if (value.EqualsIgnoreCase(ECWeaverArgConsts.Values.Sjis))
 				return SCommon.ENCODING_SJIS;
 
-			if (value.EqualsIgnoreCase(CommandLineConsts.Values.Utf8))
+			if (value.EqualsIgnoreCase(ECWeaverArgConsts.Values.Utf8))
 				return new UTF8Encoding(false);
 
-			if (value.EqualsIgnoreCase(CommandLineConsts.Values.Utf8Bom))
+			if (value.EqualsIgnoreCase(ECWeaverArgConsts.Values.Utf8Bom))
 				return new UTF8Encoding(true);
 
-			if (value.EqualsIgnoreCase(CommandLineConsts.Values.Utf16Le))
+			if (value.EqualsIgnoreCase(ECWeaverArgConsts.Values.Utf16Le))
 				return Encoding.Unicode;
 
 			throw new Exception("Unknown encoding: " + value);
@@ -703,18 +703,18 @@ namespace HLTStudio.Commands
 
 		private char GetDelimiter(char defaultDelimiter, string file)
 		{
-			string value = this.Args.GetOptionValue(CommandLineConsts.Options.Delimiter);
+			string value = this.Args.GetOptionValue(ECWeaverArgConsts.Options.Delimiter);
 
 			if (value == null)
 				return GetDefaultDelimiter(file, defaultDelimiter);
 
-			if (value.EqualsIgnoreCase(CommandLineConsts.Values.Comma))
+			if (value.EqualsIgnoreCase(ECWeaverArgConsts.Values.Comma))
 				return CsvFileReader.DELIMITER_COMMA;
 
-			if (value.EqualsIgnoreCase(CommandLineConsts.Values.Tab))
+			if (value.EqualsIgnoreCase(ECWeaverArgConsts.Values.Tab))
 				return CsvFileReader.DELIMITER_TAB;
 
-			if (value.EqualsIgnoreCase(CommandLineConsts.Values.Space))
+			if (value.EqualsIgnoreCase(ECWeaverArgConsts.Values.Space))
 				return CsvFileReader.DELIMITER_SPACE;
 
 			if (value.Length == 1)
@@ -773,16 +773,16 @@ namespace HLTStudio.Commands
 
 		private int GetSingleColumnIndex(string[][] rows)
 		{
-			bool hasColumn = this.Args.HasOption(CommandLineConsts.Options.Column);
-			bool hasHeader = this.Args.HasOption(CommandLineConsts.Options.Header);
+			bool hasColumn = this.Args.HasOption(ECWeaverArgConsts.Options.Column);
+			bool hasHeader = this.Args.HasOption(ECWeaverArgConsts.Options.Header);
 
 			if (hasColumn == hasHeader)
 				throw new Exception("Specify either --column or --header.");
 
 			if (hasColumn)
-				return this.ParsePositiveInt(this.Args.GetOptionValue(CommandLineConsts.Options.Column), "--column") - 1;
+				return this.ParsePositiveInt(this.Args.GetOptionValue(ECWeaverArgConsts.Options.Column), "--column") - 1;
 
-			return this.GetHeaderIndexes(rows, new string[] { this.Args.GetOptionValue(CommandLineConsts.Options.Header) })[0];
+			return this.GetHeaderIndexes(rows, new string[] { this.Args.GetOptionValue(ECWeaverArgConsts.Options.Header) })[0];
 		}
 
 		private int[] GetHeaderIndexes(string[][] rows, string[] headers)
@@ -848,7 +848,7 @@ namespace HLTStudio.Commands
 
 		private void WriteOutput(string message)
 		{
-			if (!this.Args.HasOption(CommandLineConsts.Options.Silent))
+			if (!this.Args.HasOption(ECWeaverArgConsts.Options.Silent))
 				Console.WriteLine(message);
 		}
 	}

@@ -1,6 +1,6 @@
-﻿namespace HLTStudio.CommandLine
+﻿namespace HLTStudio.ECWArguments
 {
-	public static class CommandLineConsts
+	public static class ECWeaverArgConsts
 	{
 		public const string OptionPrefix = "--";
 
@@ -75,7 +75,7 @@
 			return name.ToLowerInvariant();
 		}
 
-		public static class Commands
+		public static class Operations
 		{
 			public const string Help = "help";
 			public const string Version = "version";

@@ -7,8 +7,8 @@ using System.IO;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Windows.Forms;
-using HLTStudio.Commands;
-using HLTStudio.CommandLine;
+using HLTStudio.ECWOperations;
+using HLTStudio.ECWArguments;
 using HLTStudio.Commons;
 
 namespace HLTStudio
@@ -22,7 +22,7 @@ namespace HLTStudio
 
 		private void Main2(ArgsReader ar)
 		{
-			if (ProcMain.DEBUG)
+			if (ProcMain.DEBUG && !ar.HasArgs())
 			{
 				Main3();
 			}
@@ -63,8 +63,8 @@ namespace HLTStudio
 
 		private void Main5(ArgsReader ar)
 		{
-			CommandLineArgs args = CommandLineArgs.Read(ar);
-			new CommandProcessor().Run(args);
+			ECWeaverArgs args = ECWeaverArgs.Read(ar);
+			new ECWeaverProcessor().Run(args);
 		}
 	}
 }

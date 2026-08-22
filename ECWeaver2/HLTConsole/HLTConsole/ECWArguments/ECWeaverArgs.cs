@@ -3,15 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using HLTStudio.Commons;
 
-namespace HLTStudio.CommandLine
+namespace HLTStudio.ECWArguments
 {
-	public class CommandLineArgs
+	public class ECWeaverArgs
 	{
 		private readonly List<string> _rawArgs = new List<string>();
 		private readonly List<string> _arguments = new List<string>();
 		private readonly Dictionary<string, List<string>> _options = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
 
-		public string Command { get; private set; }
+		public string Operation { get; private set; }
 
 		public string[] RawArgs
 		{
@@ -37,9 +37,9 @@ namespace HLTStudio.CommandLine
 			}
 		}
 
-		public static CommandLineArgs Read(ArgsReader ar)
+		public static ECWeaverArgs Read(ArgsReader ar)
 		{
-			CommandLineArgs args = new CommandLineArgs();
+			ECWeaverArgs args = new ECWeaverArgs();
 
 			foreach (string arg in ar.TrailArgs())
 			{
@@ -54,7 +54,7 @@ namespace HLTStudio.CommandLine
 
 		public bool HasOption(string name)
 		{
-			return this._options.ContainsKey(CommandLineConsts.NormalizeOptionName(name));
+			return this._options.ContainsKey(ECWeaverArgConsts.NormalizeOptionName(name));
 		}
 
 		public string GetOptionValue(string name, string defaultValue = null)
@@ -71,7 +71,7 @@ namespace HLTStudio.CommandLine
 		{
 			List<string> values;
 
-			if (this._options.TryGetValue(CommandLineConsts.NormalizeOptionName(name), out values))
+			if (this._options.TryGetValue(ECWeaverArgConsts.NormalizeOptionName(name), out values))
 				return values.ToArray();
 
 			return new string[0];
@@ -91,15 +91,15 @@ namespace HLTStudio.CommandLine
 
 					SplitOptionToken(arg, out name, out value, out hasValue);
 
-					if (!hasValue && CommandLineConsts.IsValueOption(name))
+					if (!hasValue && ECWeaverArgConsts.IsValueOption(name))
 					{
 						if (this._rawArgs.Count <= index + 1)
-							throw new Exception("Missing command line option value: " + CommandLineConsts.OptionPrefix + name);
+							throw new Exception("Missing command line option value: " + ECWeaverArgConsts.OptionPrefix + name);
 
 						value = this._rawArgs[++index];
 						hasValue = true;
 					}
-					else if (!hasValue && !CommandLineConsts.IsFlagOption(name))
+					else if (!hasValue && !ECWeaverArgConsts.IsFlagOption(name))
 					{
 						if (index + 1 < this._rawArgs.Count && !IsOptionToken(this._rawArgs[index + 1]))
 						{
@@ -110,9 +110,9 @@ namespace HLTStudio.CommandLine
 
 					this.AddOption(name, hasValue ? value : null);
 				}
-				else if (this.Command == null)
+				else if (this.Operation == null)
 				{
-					this.Command = arg;
+					this.Operation = arg;
 				}
 				else
 				{
@@ -123,7 +123,7 @@ namespace HLTStudio.CommandLine
 
 		private void AddOption(string name, string value)
 		{
-			name = CommandLineConsts.NormalizeOptionName(name);
+			name = ECWeaverArgConsts.NormalizeOptionName(name);
 
 			List<string> values;
 
@@ -139,45 +139,45 @@ namespace HLTStudio.CommandLine
 		{
 			this.NormalizePathOptions();
 
-			if (this.Command == null)
+			if (this.Operation == null)
 				return;
 
-			switch (this.Command.ToLowerInvariant())
+			switch (this.Operation.ToLowerInvariant())
 			{
-				case CommandLineConsts.Commands.ExcelToCsv:
-				case CommandLineConsts.Commands.ExcelToTsv:
-				case CommandLineConsts.Commands.CsvToExcel:
-				case CommandLineConsts.Commands.CsvsToExcel:
-				case CommandLineConsts.Commands.ExcelToPdf:
-				case CommandLineConsts.Commands.CsvSelectColumns:
-				case CommandLineConsts.Commands.CsvFilterRows:
-				case CommandLineConsts.Commands.CsvReplace:
-				case CommandLineConsts.Commands.CsvMerge:
-				case CommandLineConsts.Commands.CsvSort:
-				case CommandLineConsts.Commands.CsvUnique:
-				case CommandLineConsts.Commands.ExcelExtractPictures:
-				case CommandLineConsts.Commands.ExcelReplaceText:
-				case CommandLineConsts.Commands.ExcelReplacePlaceholder:
+				case ECWeaverArgConsts.Operations.ExcelToCsv:
+				case ECWeaverArgConsts.Operations.ExcelToTsv:
+				case ECWeaverArgConsts.Operations.CsvToExcel:
+				case ECWeaverArgConsts.Operations.CsvsToExcel:
+				case ECWeaverArgConsts.Operations.ExcelToPdf:
+				case ECWeaverArgConsts.Operations.CsvSelectColumns:
+				case ECWeaverArgConsts.Operations.CsvFilterRows:
+				case ECWeaverArgConsts.Operations.CsvReplace:
+				case ECWeaverArgConsts.Operations.CsvMerge:
+				case ECWeaverArgConsts.Operations.CsvSort:
+				case ECWeaverArgConsts.Operations.CsvUnique:
+				case ECWeaverArgConsts.Operations.ExcelExtractPictures:
+				case ECWeaverArgConsts.Operations.ExcelReplaceText:
+				case ECWeaverArgConsts.Operations.ExcelReplacePlaceholder:
 					this.NormalizeArgumentPaths(0, 1);
 					break;
 
-				case CommandLineConsts.Commands.CsvInfo:
-				case CommandLineConsts.Commands.ExcelListSheets:
-				case CommandLineConsts.Commands.ExcelInfo:
-				case CommandLineConsts.Commands.CsvValidate:
-				case CommandLineConsts.Commands.ExcelValidate:
-				case CommandLineConsts.Commands.Print:
-				case CommandLineConsts.Commands.RunScript:
+				case ECWeaverArgConsts.Operations.CsvInfo:
+				case ECWeaverArgConsts.Operations.ExcelListSheets:
+				case ECWeaverArgConsts.Operations.ExcelInfo:
+				case ECWeaverArgConsts.Operations.CsvValidate:
+				case ECWeaverArgConsts.Operations.ExcelValidate:
+				case ECWeaverArgConsts.Operations.Print:
+				case ECWeaverArgConsts.Operations.RunScript:
 					this.NormalizeArgumentPaths(0);
 					break;
 
-				case CommandLineConsts.Commands.ExcelReplacePicture:
-				case CommandLineConsts.Commands.CsvDiff:
-				case CommandLineConsts.Commands.ExcelDiff:
+				case ECWeaverArgConsts.Operations.ExcelReplacePicture:
+				case ECWeaverArgConsts.Operations.CsvDiff:
+				case ECWeaverArgConsts.Operations.ExcelDiff:
 					this.NormalizeArgumentPaths(0, 1, 2);
 					break;
 
-				case CommandLineConsts.Commands.Weave:
+				case ECWeaverArgConsts.Operations.Weave:
 					this.NormalizeAllArgumentPaths();
 					break;
 			}
@@ -185,20 +185,20 @@ namespace HLTStudio.CommandLine
 
 		private void NormalizePathOptions()
 		{
-			this.NormalizeOptionValues(CommandLineConsts.Options.InputList);
-			this.NormalizeOptionValues(CommandLineConsts.Options.Log);
-			this.NormalizeOptionValues(CommandLineConsts.Options.ToExcel);
-			this.NormalizeOptionValues(CommandLineConsts.Options.ToCsvDir);
-			this.NormalizeOptionValues(CommandLineConsts.Options.ToSameDir);
-			this.NormalizeOptionValues(CommandLineConsts.Options.Output);
-			this.NormalizeOptionValues(CommandLineConsts.Options.SetFile);
+			this.NormalizeOptionValues(ECWeaverArgConsts.Options.InputList);
+			this.NormalizeOptionValues(ECWeaverArgConsts.Options.Log);
+			this.NormalizeOptionValues(ECWeaverArgConsts.Options.ToExcel);
+			this.NormalizeOptionValues(ECWeaverArgConsts.Options.ToCsvDir);
+			this.NormalizeOptionValues(ECWeaverArgConsts.Options.ToSameDir);
+			this.NormalizeOptionValues(ECWeaverArgConsts.Options.Output);
+			this.NormalizeOptionValues(ECWeaverArgConsts.Options.SetFile);
 		}
 
 		private void NormalizeOptionValues(string name)
 		{
 			List<string> values;
 
-			if (!this._options.TryGetValue(CommandLineConsts.NormalizeOptionName(name), out values))
+			if (!this._options.TryGetValue(ECWeaverArgConsts.NormalizeOptionName(name), out values))
 				return;
 
 			for (int index = 0; index < values.Count; index++)
@@ -223,12 +223,12 @@ namespace HLTStudio.CommandLine
 
 		private static bool IsOptionToken(string token)
 		{
-			return token != null && token.StartsWith(CommandLineConsts.OptionPrefix) && CommandLineConsts.OptionPrefix.Length < token.Length;
+			return token != null && token.StartsWith(ECWeaverArgConsts.OptionPrefix) && ECWeaverArgConsts.OptionPrefix.Length < token.Length;
 		}
 
 		private static void SplitOptionToken(string token, out string name, out string value, out bool hasValue)
 		{
-			string option = token.Substring(CommandLineConsts.OptionPrefix.Length);
+			string option = token.Substring(ECWeaverArgConsts.OptionPrefix.Length);
 			int delimiter = option.IndexOf('=');
 
 			if (delimiter == -1)
@@ -244,7 +244,7 @@ namespace HLTStudio.CommandLine
 				hasValue = true;
 			}
 
-			name = CommandLineConsts.NormalizeOptionName(name);
+			name = ECWeaverArgConsts.NormalizeOptionName(name);
 
 			if (name.Length == 0)
 				throw new Exception("Bad command line option: " + token);

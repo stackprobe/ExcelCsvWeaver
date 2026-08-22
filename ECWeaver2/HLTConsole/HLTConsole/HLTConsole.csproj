@@ -61,9 +61,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CommandLine\CommandLineArgs.cs" />
-    <Compile Include="CommandLine\CommandLineConsts.cs" />
-    <Compile Include="Commands\CommandProcessor.cs" />
+    <Compile Include="ECWArguments\ECWeaverArgs.cs" />
+    <Compile Include="ECWArguments\ECWeaverArgConsts.cs" />
+    <Compile Include="ECWOperations\ECWeaverProcessor.cs" />
     <Compile Include="Common.cs" />
     <Compile Include="Commons\ArgsReader.cs" />
     <Compile Include="Commons\ProcMain.cs" />
