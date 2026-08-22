@@ -7,8 +7,9 @@ using System.IO;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Windows.Forms;
+using HLTStudio.Commands;
+using HLTStudio.CommandLine;
 using HLTStudio.Commons;
-using HLTStudio.Tools;
 
 namespace HLTStudio
 {
@@ -21,7 +22,7 @@ namespace HLTStudio
 
 		private void Main2(ArgsReader ar)
 		{
-			if (ProcMain.DEBUG)
+			if (ProcMain.DEBUG && !ar.HasArgs())
 			{
 				Main3();
 			}
@@ -37,7 +38,7 @@ namespace HLTStudio
 #if DEBUG
 			// -- choose one --
 
-			Main4(new ArgsReader(new string[] { }));
+			//Main4(new ArgsReader(new string[] { }));
 			//Main4(new ArgsReader(new string[] { }));
 			//Main4(new ArgsReader(new string[] { }));
 
@@ -62,7 +63,8 @@ namespace HLTStudio
 
 		private void Main5(ArgsReader ar)
 		{
-			ExcelInteropTools.ToPDF(@"C:\home\Chest\クリッカーゲームのボタン名.xlsx", @"C:\temp\1.pdf"); // test test test test test
+			CommandLineArgs args = CommandLineArgs.Read(ar);
+			new CommandProcessor().Run(args);
 		}
 	}
 }
