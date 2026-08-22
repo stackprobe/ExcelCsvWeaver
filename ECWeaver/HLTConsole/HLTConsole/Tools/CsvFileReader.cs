@@ -130,6 +130,11 @@ namespace HLTStudio.Tools
 			return ReadToEnd(file, GetFileEncoding(file));
 		}
 
+		public static string[][] ReadToEnd(string file, char delimiter)
+		{
+			return ReadToEnd(file, GetFileEncoding(file), delimiter);
+		}
+
 		public static string[][] ReadToEnd(string file, Encoding encoding)
 		{
 			return ReadToEnd(file, encoding, DELIMITER_COMMA);

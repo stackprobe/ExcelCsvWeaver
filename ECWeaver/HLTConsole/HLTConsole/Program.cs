@@ -63,6 +63,7 @@ namespace HLTStudio
 		private void Main5(ArgsReader ar)
 		{
 			CommandLineArgs args = CommandLineArgs.Read(ar);
+			new CommandLineCommandRunner().Run(args);
 		}
 	}
 }
