@@ -4,7 +4,8 @@
 
 `ECWeaver_CommandLine.md` に記載されたコマンドライン機能について、`ECWeaver` と `ECWeaver2` のどちらで実装するのが自然かを整理する。
 
-このメモでは、既存の `Tools\*.cs` を完成済み機能の一覧ではなく、今後メソッドを追加していくための実装素材として扱う。
+このメモでは、既存の `Tools\*.cs` を実装素材として扱う。
+また、現在実装済みのコマンドについては実装先と制限を記録する。
 
 ## 判定方針
 
@@ -13,6 +14,7 @@
 - `ECWeaver` は `ExcelAppTools` と `ExcelTools` を持つため、Excel COM を使った読み取り・PDF・印刷・プレースホルダ処理、および `.xlsx` ZIP 内部操作に向いている。
 - `ECWeaver2` は `ExcelInteropTools` と `Microsoft.Office.Interop.Excel` 参照を持つため、Excel Interop による新規ブック作成・複数シート作成・セル書き込みに向いている。
 - CSV 系は両方に `CsvFileReader` / `CsvFileWriter` があるため、どちらでも実装可能と考える。
+- Excel 未インストール環境で動かせるのは、CSV 系と `ExcelTools` による ZIP / Open XML 直接操作系である。
 
 ## 推奨実装先
 
@@ -48,6 +50,94 @@
 | `printers` | 共通 | 両方にプリンタ一覧取得素材がある。 |
 | `print` | 共通 | 両方に印刷素材がある。 |
 | `run-script` | 共通 | コマンド層で実装する機能で、Tools 依存が薄い。 |
+
+## 現在の実装状況
+
+### ECWeaver
+
+実装済み:
+
+```txt
+help
+version
+excel-to-csv
+excel-to-tsv
+excel-to-pdf
+csv-info
+csv-select-columns
+csv-filter-rows
+csv-replace
+csv-merge
+csv-sort
+csv-unique
+excel-list-sheets
+excel-extract-pictures
+excel-replace-picture
+printers
+print
+```
+
+未実装:
+
+```txt
+csv-to-excel
+csvs-to-excel
+weave
+excel-info
+excel-replace-text
+excel-replace-placeholder
+csv-validate
+excel-validate
+csv-diff
+excel-diff
+run-script
+```
+
+`excel-extract-pictures` と `excel-replace-picture` は `ExcelTools` を使うため Excel は不要。
+それ以外の Excel 読み込み、PDF、印刷、プリンタ一覧は `ExcelAppTools` を使う。
+
+### ECWeaver2
+
+実装済み:
+
+```txt
+help
+version
+csv-to-excel
+csvs-to-excel
+excel-to-pdf
+weave
+csv-info
+csv-select-columns
+csv-filter-rows
+csv-replace
+csv-merge
+csv-sort
+csv-unique
+printers
+print
+```
+
+未実装:
+
+```txt
+excel-to-csv
+excel-to-tsv
+excel-list-sheets
+excel-info
+excel-extract-pictures
+excel-replace-picture
+excel-replace-text
+excel-replace-placeholder
+csv-validate
+excel-validate
+csv-diff
+excel-diff
+run-script
+```
+
+`weave` は `--to-excel` のみ実装済み。
+入力は `.csv`、`.tsv`、`.ssv` に限り、Excel 入力混在、`--to-csv-dir`、`--to-same-dir` は未実装。
 
 ## 結論
 

@@ -36,6 +36,69 @@ ECWeaver2.exe excel-to-pdf --engine interop input.xlsx output.pdf
 ECWeaver.exe csv-select-columns --columns 1,3,5 input.csv output.csv
 ```
 
+## 現状実装範囲
+
+この文書は将来仕様を含む。以下は現在の実装済み範囲である。
+
+### ECWeaver
+
+```txt
+help
+version
+excel-to-csv
+excel-to-tsv
+excel-to-pdf
+csv-info
+csv-select-columns
+csv-filter-rows
+csv-replace
+csv-merge
+csv-sort
+csv-unique
+excel-list-sheets
+excel-extract-pictures
+excel-replace-picture
+printers
+print
+```
+
+未実装コマンドを指定した場合は、未実装エラーにする。
+
+### ECWeaver2
+
+```txt
+help
+version
+csv-to-excel
+csvs-to-excel
+excel-to-pdf
+weave
+csv-info
+csv-select-columns
+csv-filter-rows
+csv-replace
+csv-merge
+csv-sort
+csv-unique
+printers
+print
+```
+
+`weave` は現在 `--to-excel` のみ実装済みで、入力は `.csv`、`.tsv`、`.ssv` に限る。
+`--to-csv-dir`、`--to-same-dir`、Excel 入力の混在処理は未実装である。
+
+### Excel インストール要否
+
+- CSV 専用コマンドは Excel を必要としない。
+- `ECWeaver` の `excel-extract-pictures`、`excel-replace-picture` は `ExcelTools` による ZIP / Open XML 直接操作のため Excel を必要としない。
+- `ExcelAppTools` または `ExcelInteropTools` を使う Excel 読み込み、Excel 作成、PDF 出力、印刷、プリンタ一覧は Excel または該当環境を必要とする。
+
+### 現在の制限
+
+- `--newline`、`--log`、`--verbose`、`--no-dialog`、`--range`、`--password` はオプション名として予約されているが、現在の処理では実質未対応である。
+- 例外発生時は `Program.Main4()` でログ出力とエラーダイアログ表示を行う。`--no-dialog` による抑制は未実装である。
+- 終了コード体系は案であり、現在は例外種別ごとの終了コード返却までは整理されていない。
+
 ## ヘルプ
 
 ```txt
@@ -49,7 +112,7 @@ ECWeaver.exe <command> --help
 仕様:
 
 - 引数なしは全体ヘルプを表示する。
-- 未知のコマンドはエラーにし、全体ヘルプの短縮版を表示する。
+- 未知のコマンドはエラーにする。現在の実装では全体ヘルプの短縮版表示までは行わない。
 - `help <command>` は指定コマンドの詳細ヘルプを表示する。
 - `--help` は他のオプションより優先する。
 
@@ -344,7 +407,6 @@ ECWeaver.exe excel-to-csv [options] --sheet <sheet> <input-excel> <output-csv>
 ```txt
 auto
 app
-interop
 ```
 
 オプション:
@@ -352,7 +414,6 @@ interop
 ```txt
 --sheet <name-or-index>
 --sheets <names-or-indexes>
---range <a1-range>
 --encoding <encoding>
 --delimiter <delimiter>
 --overwrite
@@ -360,11 +421,13 @@ interop
 
 仕様:
 
+- 現在の実装先は `ECWeaver` である。`ECWeaver2` では未実装。
 - `--sheet` 未指定時は全シートを出力ディレクトリへ出力する。
 - 全シート出力時は `0001.csv` のような連番ファイル名にする。
 - 全シート出力時は `sheet-names.txt` を出力する。
 - `--sheet` 指定時は単一 CSV ファイルへ出力する。
-- `--sheets` と単一ファイル出力の同時指定はエラーにする。
+- `--sheets` 指定時は指定シート群を出力ディレクトリへ出力する。
+- `--sheet` と `--sheets` の同時指定はエラーにする。
 
 ### excel-to-tsv
 
@@ -378,20 +441,20 @@ ECWeaver.exe excel-to-tsv [options] --sheet <sheet> <input-excel> <output-tsv>
 仕様:
 
 - `excel-to-csv --delimiter tab` の別名として扱う。
+- 現在の実装先は `ECWeaver` である。`ECWeaver2` では未実装。
 
 ### csv-to-excel
 
 CSV を 1 シートの Excel ブックに変換する。
 
 ```txt
-ECWeaver.exe csv-to-excel [options] <input-csv> <output-excel>
+ECWeaver2.exe csv-to-excel [options] <input-csv> <output-excel>
 ```
 
 対応 engine:
 
 ```txt
 auto
-app
 interop
 ```
 
@@ -406,6 +469,7 @@ interop
 
 仕様:
 
+- 現在の実装先は `ECWeaver2` である。`ECWeaver` では未実装。
 - `--sheet` 未指定時のシート名は `Sheet1` とする。
 
 ### csvs-to-excel
@@ -413,14 +477,13 @@ interop
 複数 CSV を複数シートの Excel ブックに変換する。
 
 ```txt
-ECWeaver.exe csvs-to-excel [options] <input-dir> <output-excel>
+ECWeaver2.exe csvs-to-excel [options] <input-dir> <output-excel>
 ```
 
 対応 engine:
 
 ```txt
 auto
-app
 interop
 ```
 
@@ -435,6 +498,7 @@ interop
 
 仕様:
 
+- 現在の実装先は `ECWeaver2` である。`ECWeaver` では未実装。
 - `--pattern` 未指定時は `*.csv` とする。
 - ファイル名順に読み込む。
 - シート名は拡張子なしファイル名から生成する。
@@ -467,6 +531,8 @@ interop
 
 - 初期版ではブック全体の PDF 出力を必須対応とする。
 - シート指定 PDF 出力は追加対応とする。
+- 現在は `ECWeaver` と `ECWeaver2` の両方に実装済み。
+- `ECWeaver` では `auto` または `app`、`ECWeaver2` では `auto` または `interop` を使用する。
 
 ### weave
 
@@ -503,6 +569,9 @@ interop
 
 仕様:
 
+- 現在の実装先は `ECWeaver2` の `--to-excel` のみである。`ECWeaver` では未実装。
+- 現在の `ECWeaver2 weave --to-excel` は `.csv`、`.tsv`、`.ssv` の入力だけを受け付ける。
+- 現在の `ECWeaver2 weave --to-excel` では、Excel 入力、`--to-csv-dir`、`--to-same-dir`、加工指定は未実装。
 - 入力ファイルは複数指定できる。
 - 入力ファイルは `.csv`、`.tsv`、`.ssv`、`.xls`、`.xlsx`、`.xlsm` の混在を許可する。
 - コマンドラインで指定された入力ファイル、または `--input-list` で指定されたリストファイルを、記載順に処理する。
@@ -519,8 +588,8 @@ interop
 出力モード:
 
 - `--to-excel <output-excel>` は、全ての中間データを 1 つの `.xlsx` ブックのシートとして出力する。
-- `--to-csv-dir <output-dir>` は、全ての中間データを CSV ファイル群として指定フォルダへ出力する。
-- `--to-same-dir <output-dir>` は、入力ファイル単位のまとまりを保ち、指定フォルダへ出力する。
+- `--to-csv-dir <output-dir>` は、全ての中間データを CSV ファイル群として指定フォルダへ出力する。現在は未実装。
+- `--to-same-dir <output-dir>` は、入力ファイル単位のまとまりを保ち、指定フォルダへ出力する。現在は未実装。
 
 名前生成:
 
@@ -733,8 +802,6 @@ ECWeaver.exe excel-list-sheets [options] <input-excel>
 ```txt
 auto
 app
-interop
-zip
 ```
 
 オプション:
@@ -750,6 +817,11 @@ zip
 1	Sheet1
 2	Sheet2
 ```
+
+仕様:
+
+- 現在の実装先は `ECWeaver` である。`ECWeaver2` では未実装。
+- 現在は `ExcelAppTools.LoadSheets` を使うため、`auto` または `app` を使用する。
 
 ### excel-info
 
@@ -776,6 +848,10 @@ Pictures: 5
 Size: 123456
 ```
 
+仕様:
+
+- 現在は未実装である。
+
 ### excel-extract-pictures
 
 Excel ブック内の画像を抽出する。
@@ -799,8 +875,10 @@ zip
 
 仕様:
 
+- 現在の実装先は `ECWeaver` である。`ECWeaver2` では未実装。
 - `auto` は `zip` と同じ扱いにする。
 - 出力ファイル名は `0001.png` のような連番にする。
+- Excel アプリケーションを使わず、`.xlsx` を ZIP として展開して画像ファイルを収集する。
 
 ### excel-replace-picture
 
@@ -826,8 +904,10 @@ zip
 
 仕様:
 
+- 現在の実装先は `ECWeaver` である。`ECWeaver2` では未実装。
 - 初期版では `--index` 未指定時、すべての画像を指定画像で置換する。
 - `--index` は 1 始まりとする。
+- Excel アプリケーションを使わず、`.xlsx` を ZIP として展開して画像ファイルを置換する。
 
 ### excel-replace-text
 
@@ -1007,6 +1087,11 @@ app
 interop
 ```
 
+現在の実装:
+
+- `ECWeaver` は `auto` または `app`。
+- `ECWeaver2` は `auto` または `interop`。
+
 ### print
 
 Excel ブックを印刷する。
@@ -1034,6 +1119,8 @@ interop
 
 - `--printer` 未指定時は既定プリンタに出力する。
 - 印刷は破壊的ではないが、実行前に GUI 側では確認を出す。
+- 現在は `--sheet` 未対応で、ブック全体を印刷する。
+- `ECWeaver` は `auto` または `app`、`ECWeaver2` は `auto` または `interop` を使用する。
 
 ## 自動化系
 

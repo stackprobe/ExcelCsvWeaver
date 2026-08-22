@@ -15,6 +15,58 @@
 - まずは単機能コマンドを増やし、あとから複数処理をつなぐバッチ的な機能を追加する。
 - 複数の Excel / CSV ファイルを混在指定できる統合変換では、入力をいったんシート相当の中間データに正規化し、加工してから出力形式を選ぶ。
 
+## 現状実装メモ
+
+現在の実装では、すべての予定コマンドを両方の実行ファイルに実装しているわけではない。
+
+`ECWeaver` の実装済みコマンド:
+
+```txt
+help
+version
+excel-to-csv
+excel-to-tsv
+excel-to-pdf
+csv-info
+csv-select-columns
+csv-filter-rows
+csv-replace
+csv-merge
+csv-sort
+csv-unique
+excel-list-sheets
+excel-extract-pictures
+excel-replace-picture
+printers
+print
+```
+
+`ECWeaver2` の実装済みコマンド:
+
+```txt
+help
+version
+csv-to-excel
+csvs-to-excel
+excel-to-pdf
+weave
+csv-info
+csv-select-columns
+csv-filter-rows
+csv-replace
+csv-merge
+csv-sort
+csv-unique
+printers
+print
+```
+
+`ECWeaver2` の `weave` は現在 `--to-excel` のみ実装済みで、入力は `.csv`、`.tsv`、`.ssv` に限る。
+Excel 入力混在、`--to-csv-dir`、`--to-same-dir`、加工パイプラインは未実装である。
+
+Excel 未インストール環境で動作できるのは、CSV 専用コマンドと `ECWeaver` の `ExcelTools` を使う ZIP / Open XML 直接操作系である。
+`ExcelAppTools` または `ExcelInteropTools` を使う処理は Excel が利用できる環境を必要とする。
+
 ## 既存ツールの位置づけ
 
 ### ExcelAppTools
@@ -25,6 +77,7 @@ Excel アプリケーションを PowerShell COM 経由で操作する。
 
 - Excel ファイルの全シート読み込み
 - Excel から CSV への変換
+- Excel から TSV への変換
 - Excel から PDF への変換
 - 印刷
 - プリンタ一覧取得
@@ -33,9 +86,7 @@ Excel アプリケーションを PowerShell COM 経由で操作する。
 
 追加候補:
 
-- 指定シートのみ CSV 出力
-- シート名指定 / シート番号指定の両対応
-- Excel から TSV / SSV 出力
+- SSV 出力
 - CSV / TSV から Excel ブック作成
 - 複数 CSV から複数シート Excel 作成
 - 複数 Excel / CSV 混在入力から 1 ブックまたは CSV 群を作成
@@ -57,6 +108,9 @@ Excel アプリケーションを PowerShell COM 経由で操作する。
 既存機能:
 
 - Excel から PDF への変換
+- CSV / TSV / SSV から Excel ブック作成
+- 複数 CSV から複数シート Excel ブック作成
+- CSV / TSV / SSV 群を `weave --to-excel` で 1 ブックへ統合
 - 印刷
 - プリンタ一覧取得
 
@@ -65,9 +119,9 @@ Excel アプリケーションを PowerShell COM 経由で操作する。
 - ExcelAppTools と同等の Excel -> CSV
 - シート一覧取得
 - セル値読み込み
-- セル値書き込み
+- セル値書き込みの拡張
 - 範囲読み込み
-- 範囲書き込み
+- 範囲書き込みの拡張
 - 行列削除 / 挿入
 - オートフィット
 - フィルタ適用
@@ -79,6 +133,8 @@ Excel アプリケーションを PowerShell COM 経由で操作する。
 ### ExcelTools
 
 `.xlsx` を ZIP として展開し、Open XML 内部ファイルを直接扱う。
+
+Excel アプリケーションを起動しないため、Excel 未インストール環境でも動作できる系統である。
 
 既存機能:
 
@@ -103,22 +159,27 @@ Excel アプリケーションを PowerShell COM 経由で操作する。
 
 CSV / TSV / SSV の読み書きに使う。
 
-追加候補:
+既存機能:
 
-- UTF-8 BOM / UTF-8 no BOM / Shift_JIS / UTF-16LE の明示指定
-- 区切り文字の自動判定
-- 改行コードの指定
-- ヘッダーあり / なしの扱い
-- 列名による列抽出
+- Shift_JIS / UTF-8 / UTF-8 BOM / UTF-16LE の明示指定
+- 拡張子による区切り文字の選択
 - 列番号による列抽出
+- ヘッダー名による列抽出
 - 行フィルタ
 - セル置換
 - 正規表現置換
-- 重複行削除
+- 複数 CSV の結合
 - ソート
+- 重複行削除
+- CSV 基本情報出力
+
+追加候補:
+
+- 区切り文字の自動判定
+- 改行コードの指定
+- ヘッダーあり / なしの扱い
 - グループ集計
 - 縦横変換
-- 複数 CSV の結合
 - CSV 差分比較
 - CSV 妥当性検査
 
@@ -183,8 +244,8 @@ ECWeaver.exe excel-to-tsv input.xlsx output-dir
 CSV を Excel ブックに変換する。
 
 ```txt
-ECWeaver.exe csv-to-excel input.csv output.xlsx
-ECWeaver.exe csv-to-excel --sheet Data input.csv output.xlsx
+ECWeaver2.exe csv-to-excel input.csv output.xlsx
+ECWeaver2.exe csv-to-excel --sheet Data input.csv output.xlsx
 ```
 
 仕様:
@@ -197,7 +258,7 @@ ECWeaver.exe csv-to-excel --sheet Data input.csv output.xlsx
 複数 CSV を複数シートの Excel ブックに変換する。
 
 ```txt
-ECWeaver.exe csvs-to-excel input-dir output.xlsx
+ECWeaver2.exe csvs-to-excel input-dir output.xlsx
 ```
 
 仕様:
@@ -226,14 +287,16 @@ ECWeaver2.exe excel-to-pdf input.xlsx output.pdf
 複数の Excel / CSV ファイルを混在入力として受け取り、順番に処理して統合変換する。
 
 ```txt
-ECWeaver.exe weave input1.csv input2.xlsx input3.csv --to-excel output.xlsx
+ECWeaver2.exe weave input1.csv input2.csv input3.tsv --to-excel output.xlsx
+ECWeaver2.exe weave --input-list files.txt --to-excel output.xlsx
 ECWeaver.exe weave input1.csv input2.xlsx input3.csv --to-csv-dir output-dir
 ECWeaver.exe weave input1.csv input2.xlsx input3.csv --to-same-dir output-dir
-ECWeaver.exe weave --input-list files.txt --to-excel output.xlsx
 ```
 
 仕様:
 
+- 現在の実装は `ECWeaver2` の `--to-excel` のみで、入力は `.csv`、`.tsv`、`.ssv` に限る。
+- Excel 入力混在、`ECWeaver` 側の weave、`--to-csv-dir`、`--to-same-dir` は将来対応とする。
 - 入力ファイルは複数指定できる。
 - 入力ファイルは `.csv`、`.tsv`、`.ssv`、`.xls`、`.xlsx`、`.xlsm` の混在を許可する。
 - コマンドラインで指定された入力ファイル、または `--input-list` で指定されたリストファイルを、記載順に処理する。
