@@ -628,6 +628,7 @@ ECWeaver.exe watch input-dir output-dir --command excel-to-csv
 - コマンドごとの処理は `Commands` 名前空間または `Tools` 配下に分割する。
 - `ArgsReader` は既存のままでも始められるが、オプション解析が増えたら補助クラスを追加する。
 - ファイル上書きは原則禁止し、`--overwrite` 指定時だけ許可する。
+- コマンド引数で受け取ったファイル名・フォルダ名は、処理層へ渡す前に `SCommon.MakeFullPath` でフルパス化する。
 - 出力ファイルは一時ファイルへ作成してから移動する。
 - CSV は矩形化が必要な処理と、不揃い行を保持すべき処理を分ける。
 - Excel を使う処理は Excel 未インストール環境で明確なエラーを返す。

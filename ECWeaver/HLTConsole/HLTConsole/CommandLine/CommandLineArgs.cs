@@ -48,6 +48,7 @@ namespace HLTStudio.CommandLine
 			ar.End();
 
 			args.ReadRawArgs();
+			args.NormalizePathArgs();
 			return args;
 		}
 
@@ -132,6 +133,92 @@ namespace HLTStudio.CommandLine
 				this._options.Add(name, values);
 			}
 			values.Add(value);
+		}
+
+		private void NormalizePathArgs()
+		{
+			this.NormalizePathOptions();
+
+			if (this.Command == null)
+				return;
+
+			switch (this.Command.ToLowerInvariant())
+			{
+				case CommandLineConsts.Commands.ExcelToCsv:
+				case CommandLineConsts.Commands.ExcelToTsv:
+				case CommandLineConsts.Commands.CsvToExcel:
+				case CommandLineConsts.Commands.CsvsToExcel:
+				case CommandLineConsts.Commands.ExcelToPdf:
+				case CommandLineConsts.Commands.CsvSelectColumns:
+				case CommandLineConsts.Commands.CsvFilterRows:
+				case CommandLineConsts.Commands.CsvReplace:
+				case CommandLineConsts.Commands.CsvMerge:
+				case CommandLineConsts.Commands.CsvSort:
+				case CommandLineConsts.Commands.CsvUnique:
+				case CommandLineConsts.Commands.ExcelExtractPictures:
+				case CommandLineConsts.Commands.ExcelReplaceText:
+				case CommandLineConsts.Commands.ExcelReplacePlaceholder:
+					this.NormalizeArgumentPaths(0, 1);
+					break;
+
+				case CommandLineConsts.Commands.CsvInfo:
+				case CommandLineConsts.Commands.ExcelListSheets:
+				case CommandLineConsts.Commands.ExcelInfo:
+				case CommandLineConsts.Commands.CsvValidate:
+				case CommandLineConsts.Commands.ExcelValidate:
+				case CommandLineConsts.Commands.Print:
+				case CommandLineConsts.Commands.RunScript:
+					this.NormalizeArgumentPaths(0);
+					break;
+
+				case CommandLineConsts.Commands.ExcelReplacePicture:
+				case CommandLineConsts.Commands.CsvDiff:
+				case CommandLineConsts.Commands.ExcelDiff:
+					this.NormalizeArgumentPaths(0, 1, 2);
+					break;
+
+				case CommandLineConsts.Commands.Weave:
+					this.NormalizeAllArgumentPaths();
+					break;
+			}
+		}
+
+		private void NormalizePathOptions()
+		{
+			this.NormalizeOptionValues(CommandLineConsts.Options.InputList);
+			this.NormalizeOptionValues(CommandLineConsts.Options.Log);
+			this.NormalizeOptionValues(CommandLineConsts.Options.ToExcel);
+			this.NormalizeOptionValues(CommandLineConsts.Options.ToCsvDir);
+			this.NormalizeOptionValues(CommandLineConsts.Options.ToSameDir);
+			this.NormalizeOptionValues(CommandLineConsts.Options.Output);
+			this.NormalizeOptionValues(CommandLineConsts.Options.SetFile);
+		}
+
+		private void NormalizeOptionValues(string name)
+		{
+			List<string> values;
+
+			if (!this._options.TryGetValue(CommandLineConsts.NormalizeOptionName(name), out values))
+				return;
+
+			for (int index = 0; index < values.Count; index++)
+			{
+				if (values[index] != null)
+					values[index] = SCommon.MakeFullPath(values[index]);
+			}
+		}
+
+		private void NormalizeArgumentPaths(params int[] indexes)
+		{
+			foreach (int index in indexes)
+				if (index < this._arguments.Count)
+					this._arguments[index] = SCommon.MakeFullPath(this._arguments[index]);
+		}
+
+		private void NormalizeAllArgumentPaths()
+		{
+			for (int index = 0; index < this._arguments.Count; index++)
+				this._arguments[index] = SCommon.MakeFullPath(this._arguments[index]);
 		}
 
 		private static bool IsOptionToken(string token)
