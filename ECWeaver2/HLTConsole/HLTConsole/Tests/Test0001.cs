@@ -23,11 +23,12 @@ namespace HLTStudio.Tests
 
 		public void Test01()
 		{
-			// F5 実行時にコンソールがすぐ閉じると結果を確認しづらいため、待機時間の強制 0 秒化は無効にしている。
+			// 人間が F5 で実行するときコンソールがすぐ閉じると結果を確認しづらいため、待機時間の強制 0 秒化は無効にしている。
 			//SCommon.Pause_WaitSeconds = 0;
+
 			SCommon.DeleteAndCreateDir(BaseDir);
 
-			// C:\home\res 配下のテストデータは永続管理するため、初回生成後は毎回作り直さない。
+			// C:\home\res\ 配下のテストデータは永続管理するため、初回生成後は毎回作り直さない。
 			//this.PrepareTestData();
 
 			this.TestHelpVersionAndCommandErrors();
