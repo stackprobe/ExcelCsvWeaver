@@ -23,33 +23,40 @@ namespace HLTStudio.Tests
 
 		public void Test01()
 		{
-			// 人間が F5 で実行するときコンソールがすぐ閉じると結果を確認しづらいため、待機時間の強制 0 秒化は無効にしている。
-			//SCommon.Pause_WaitSeconds = 0;
+			try
+			{
+				// 人間が F5 で実行するときコンソールがすぐ閉じると結果を確認しづらいため、待機時間の強制 0 秒化は無効にしている。
+				//SCommon.Pause_WaitSeconds = 0;
 
-			SCommon.DeleteAndCreateDir(BaseDir);
+				SCommon.DeleteAndCreateDir(BaseDir);
 
-			// C:\home\res\ 配下のテストデータは永続管理するため、初回生成後は毎回作り直さない。
-			//this.PrepareTestData();
+				// C:\home\res\ 配下のテストデータは永続管理するため、初回生成後は毎回作り直さない。
+				//this.PrepareTestData();
 
-			this.TestHelpVersionAndCommandErrors();
-			this.TestCsvInfoCountsRowsAndColumns();
-			this.TestCsvSelectColumnsByIndexesAndHeaders();
-			this.TestCsvSelectColumnsRejectsBadOptions();
-			this.TestCsvFilterRowsByEqualsContainsRegexAndInvert();
-			this.TestCsvFilterRowsRejectsBadOptions();
-			this.TestCsvReplaceAllCellsAndSelectedColumns();
-			this.TestCsvReplaceRejectsBadOptions();
-			this.TestCsvMergeOrdersFilesAndSkipsRepeatedHeaders();
-			this.TestCsvSortStringAndNumericValues();
-			this.TestCsvUniqueRemovesDuplicateRowsAndKeys();
-			this.TestDelimiterAndEncodingOptions();
-			this.TestOverwriteProtection();
-			this.TestCsvToExcel();
-			this.TestCsvsToExcel();
-			this.TestWeaveToExcel();
-			this.TestExcelOutputCommandsRejectBadOptions();
+				this.TestHelpVersionAndCommandErrors();
+				this.TestCsvInfoCountsRowsAndColumns();
+				this.TestCsvSelectColumnsByIndexesAndHeaders();
+				this.TestCsvSelectColumnsRejectsBadOptions();
+				this.TestCsvFilterRowsByEqualsContainsRegexAndInvert();
+				this.TestCsvFilterRowsRejectsBadOptions();
+				this.TestCsvReplaceAllCellsAndSelectedColumns();
+				this.TestCsvReplaceRejectsBadOptions();
+				this.TestCsvMergeOrdersFilesAndSkipsRepeatedHeaders();
+				this.TestCsvSortStringAndNumericValues();
+				this.TestCsvUniqueRemovesDuplicateRowsAndKeys();
+				this.TestDelimiterAndEncodingOptions();
+				this.TestOverwriteProtection();
+				this.TestCsvToExcel();
+				this.TestCsvsToExcel();
+				this.TestWeaveToExcel();
+				this.TestExcelOutputCommandsRejectBadOptions();
 
-			this.ShowSuccessBanner();
+				this.ShowSuccessBanner();
+			}
+			catch (Exception ex)
+			{
+				this.ShowFailure(ex);
+			}
 		}
 
 		/// <summary>
@@ -826,6 +833,17 @@ namespace HLTStudio.Tests
 			Console.WriteLine("====              ALL TESTS PASSED                      ====");
 			Console.WriteLine("====                                                    ====");
 			Console.WriteLine("============================================================");
+			Console.WriteLine("============================================================");
+			Console.WriteLine("");
+		}
+
+		private void ShowFailure(Exception ex)
+		{
+			Console.WriteLine("");
+			Console.WriteLine("============================================================");
+			Console.WriteLine("ECWeaver2 Test0001 FAILED");
+			Console.WriteLine("============================================================");
+			Console.WriteLine(ex.ToString());
 			Console.WriteLine("============================================================");
 			Console.WriteLine("");
 		}
