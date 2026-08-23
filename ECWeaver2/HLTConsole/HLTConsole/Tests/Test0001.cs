@@ -571,7 +571,7 @@ namespace HLTStudio.Tests
 			this.AssertThrows(() => this.Run(new string[] { "weave", "--to-excel", this.OutputFile("weave-no-input.xlsx") }), "Input file not specified");
 			this.AssertThrows(() => this.Run(new string[] { "weave", this.InputFile("unsupported.txt"), "--to-excel", this.OutputFile("weave-unsupported.xlsx") }), "currently supports CSV/TSV/SSV");
 			this.AssertThrows(() => this.Run(new string[] { "weave", this.InputFile("basic.csv"), "--to-excel", weaveOutput }), "Output path already exists");
-			this.AssertThrows(() => this.Run(new string[] { "weave", this.InputFile("basic.csv"), "--to-same-dir" }), "not implemented in ECWeaver2");
+			this.AssertThrows(() => this.Run(new string[] { "weave", this.InputFile("basic.csv"), "--to-same-dir", this.OutputFile("same-dir") }), "not implemented in ECWeaver2");
 		}
 
 		private void PrepareTestData()
