@@ -23,10 +23,10 @@ namespace HLTStudio.Tests
 
 		public void Test01()
 		{
-			SCommon.Pause_WaitSeconds = 0;
+			//SCommon.Pause_WaitSeconds = 0;
 			SCommon.DeleteAndCreateDir(BaseDir);
 
-			this.PrepareTestData();
+			//this.PrepareTestData();
 
 			this.TestHelpVersionAndCommandErrors();
 			this.TestCsvInfoCountsRowsAndColumns();
@@ -851,9 +851,9 @@ namespace HLTStudio.Tests
 			Console.WriteLine("============================================================");
 			Console.WriteLine("============================================================");
 			Console.WriteLine("====                                                    ====");
-			Console.WriteLine("====              ECWeaver Test0001 SUCCESS            ====");
+			Console.WriteLine("====              ECWeaver Test0001 SUCCESS             ====");
 			Console.WriteLine("====                                                    ====");
-			Console.WriteLine("====              ALL TESTS PASSED                     ====");
+			Console.WriteLine("====              ALL TESTS PASSED                      ====");
 			Console.WriteLine("====                                                    ====");
 			Console.WriteLine("============================================================");
 			Console.WriteLine("============================================================");
