@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using HLTStudio.ECWOperations;
 using HLTStudio.ECWArguments;
 using HLTStudio.Commons;
+using HLTStudio.Tests;
 
 namespace HLTStudio
 {
@@ -41,6 +42,7 @@ namespace HLTStudio
 			//Main4(new ArgsReader(new string[] { }));
 			//Main4(new ArgsReader(new string[] { }));
 			//Main4(new ArgsReader(new string[] { }));
+			new Test0001().Test01();
 
 			// --
 #endif

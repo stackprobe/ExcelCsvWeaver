@@ -75,6 +75,7 @@
     <Compile Include="Extensions.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Tests\Test0001.cs" />
     <Compile Include="Tools\CsvFileReader.cs" />
     <Compile Include="Tools\CsvFileWriter.cs" />
     <Compile Include="Tools\ExcelInteropTools.cs" />
