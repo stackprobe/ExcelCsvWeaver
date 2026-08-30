@@ -117,6 +117,24 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="label1.Text" xml:space="preserve">
+    <value>ExcelCsvWeaver GUI is currently reserved for future development.
+
+For now, please use the command-line tools included with this package:
+
+- ECWeaver.exe
+- ECWeaver2.exe
+
+These tools provide Excel and CSV conversion, processing, inspection,
+PDF export, image extraction/replacement, and printing features.
+
+To see available commands, run:
+
+ECWeaver.exe help
+ECWeaver2.exe help
+
+The GUI application will remain as a placeholder until a dedicated graphical workflow is needed.</value>
+  </data>
   <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
   <data name="$this.Icon" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>

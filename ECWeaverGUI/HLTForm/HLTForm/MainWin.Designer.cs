@@ -35,18 +35,18 @@
 			// label1
 			// 
 			this.label1.AutoSize = true;
-			this.label1.Font = new System.Drawing.Font("メイリオ", 72F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+			this.label1.Font = new System.Drawing.Font("メイリオ", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
 			this.label1.Location = new System.Drawing.Point(12, 9);
 			this.label1.Name = "label1";
-			this.label1.Size = new System.Drawing.Size(337, 144);
+			this.label1.Size = new System.Drawing.Size(617, 320);
 			this.label1.TabIndex = 0;
-			this.label1.Text = "TODO";
+			this.label1.Text = resources.GetString("label1.Text");
 			// 
 			// MainWin
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(784, 561);
+			this.ClientSize = new System.Drawing.Size(784, 411);
 			this.Controls.Add(this.label1);
 			this.Font = new System.Drawing.Font("メイリオ", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
 			this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
@@ -54,7 +54,7 @@
 			this.Name = "MainWin";
 			this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Show;
 			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-			this.Text = "HLTForm";
+			this.Text = "ExcelCsvWeaver";
 			this.Load += new System.EventHandler(this.MainWin_Load);
 			this.ResumeLayout(false);
 			this.PerformLayout();
