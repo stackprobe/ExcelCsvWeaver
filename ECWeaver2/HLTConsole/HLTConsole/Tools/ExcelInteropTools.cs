@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using HLTStudio.Commons;
@@ -24,6 +25,20 @@ namespace HLTStudio.Tools
 			{
 				this.Name = name;
 				this.Rows = rows ?? new string[0][];
+			}
+		}
+
+		public class TextReplacement
+		{
+			public string From;
+			public string To;
+			public bool Regex;
+
+			public TextReplacement(string from, string to, bool regex)
+			{
+				this.From = from;
+				this.To = to;
+				this.Regex = regex;
 			}
 		}
 
@@ -170,6 +185,183 @@ namespace HLTStudio.Tools
 				GC.Collect();
 				GC.WaitForPendingFinalizers();
 			}
+		}
+
+		public static void ReplaceText(string inputExcelFile, string outputExcelFile, TextReplacement[] replacements, string sheetSelector = null)
+		{
+			if (string.IsNullOrEmpty(inputExcelFile))
+				throw new Exception("Bad inputExcelFile.");
+
+			if (!File.Exists(inputExcelFile))
+				throw new Exception("Input file not found: " + inputExcelFile);
+
+			if (string.IsNullOrEmpty(outputExcelFile))
+				throw new Exception("Bad outputExcelFile.");
+
+			if (replacements == null || replacements.Length == 0 || replacements.Any(replacement => replacement == null))
+				throw new Exception("Replacement not specified.");
+
+			Microsoft.Office.Interop.Excel.Application app = new Microsoft.Office.Interop.Excel.Application();
+			try
+			{
+				app.Visible = false;
+				app.DisplayAlerts = false;
+
+				Microsoft.Office.Interop.Excel.Workbooks workbooks = app.Workbooks;
+				try
+				{
+					Microsoft.Office.Interop.Excel.Workbook workbook = workbooks.Open(inputExcelFile, ReadOnly: true);
+					try
+					{
+						foreach (Microsoft.Office.Interop.Excel.Worksheet worksheet in GetTargetWorksheets(workbook, sheetSelector))
+						{
+							try
+							{
+								ReplaceTextInWorksheet(worksheet, replacements);
+							}
+							finally
+							{
+								Marshal.ReleaseComObject(worksheet);
+							}
+						}
+
+						workbook.SaveAs(outputExcelFile, GetFileFormat(outputExcelFile));
+					}
+					finally
+					{
+						workbook.Close(false);
+						Marshal.ReleaseComObject(workbook);
+					}
+				}
+				finally
+				{
+					Marshal.ReleaseComObject(workbooks);
+				}
+			}
+			finally
+			{
+				app.Quit();
+				Marshal.ReleaseComObject(app);
+
+				GC.Collect();
+				GC.WaitForPendingFinalizers();
+				GC.Collect();
+				GC.WaitForPendingFinalizers();
+			}
+		}
+
+		private static Microsoft.Office.Interop.Excel.XlFileFormat GetFileFormat(string excelFile)
+		{
+			if (Path.GetExtension(excelFile).Equals(".xlsm", StringComparison.OrdinalIgnoreCase))
+				return Microsoft.Office.Interop.Excel.XlFileFormat.xlOpenXMLWorkbookMacroEnabled;
+
+			return Microsoft.Office.Interop.Excel.XlFileFormat.xlOpenXMLWorkbook;
+		}
+
+		private static Microsoft.Office.Interop.Excel.Worksheet[] GetTargetWorksheets(Microsoft.Office.Interop.Excel.Workbook workbook, string sheetSelector)
+		{
+			List<Microsoft.Office.Interop.Excel.Worksheet> worksheets = new List<Microsoft.Office.Interop.Excel.Worksheet>();
+
+			if (string.IsNullOrEmpty(sheetSelector))
+			{
+				foreach (Microsoft.Office.Interop.Excel.Worksheet worksheet in workbook.Worksheets)
+				{
+					worksheets.Add(worksheet);
+				}
+				return worksheets.ToArray();
+			}
+
+			if (Regex.IsMatch(sheetSelector, "^[0-9]+$"))
+			{
+				int index = int.Parse(sheetSelector);
+
+				if (index < 1 || workbook.Worksheets.Count < index)
+					throw new Exception("Sheet index out of range: " + sheetSelector);
+
+				worksheets.Add((Microsoft.Office.Interop.Excel.Worksheet)workbook.Worksheets[index]);
+				return worksheets.ToArray();
+			}
+
+			foreach (Microsoft.Office.Interop.Excel.Worksheet worksheet in workbook.Worksheets)
+			{
+				if (worksheet.Name == sheetSelector)
+				{
+					worksheets.Add(worksheet);
+					return worksheets.ToArray();
+				}
+				Marshal.ReleaseComObject(worksheet);
+			}
+
+			throw new Exception("Sheet not found: " + sheetSelector);
+		}
+
+		private static void ReplaceTextInWorksheet(Microsoft.Office.Interop.Excel.Worksheet worksheet, TextReplacement[] replacements)
+		{
+			Microsoft.Office.Interop.Excel.Range range = worksheet.UsedRange;
+			try
+			{
+				object values = range.Value2;
+				object[,] array = values as object[,];
+
+				if (array == null)
+				{
+					string replaced = ReplaceValue(values, replacements);
+
+					if (replaced != null)
+						range.Value2 = replaced;
+
+					return;
+				}
+
+				bool changed = false;
+				int rowMin = array.GetLowerBound(0);
+				int rowMax = array.GetUpperBound(0);
+				int columnMin = array.GetLowerBound(1);
+				int columnMax = array.GetUpperBound(1);
+
+				for (int row = rowMin; row <= rowMax; row++)
+				{
+					for (int column = columnMin; column <= columnMax; column++)
+					{
+						string replaced = ReplaceValue(array[row, column], replacements);
+
+						if (replaced != null)
+						{
+							array[row, column] = replaced;
+							changed = true;
+						}
+					}
+				}
+
+				if (changed)
+					range.Value2 = array;
+			}
+			finally
+			{
+				Marshal.ReleaseComObject(range);
+			}
+		}
+
+		private static string ReplaceValue(object value, TextReplacement[] replacements)
+		{
+			if (value == null)
+				return null;
+
+			string text = value as string;
+
+			if (text == null)
+				return null;
+
+			string current = text;
+
+			foreach (TextReplacement replacement in replacements)
+			{
+				current = replacement.Regex ?
+					Regex.Replace(current, replacement.From, replacement.To) :
+					current.Replace(replacement.From, replacement.To);
+			}
+
+			return current == text ? null : current;
 		}
 
 		private static void WriteSheet(Microsoft.Office.Interop.Excel.Worksheet worksheet, SheetData sheet)

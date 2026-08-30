@@ -124,14 +124,20 @@ namespace HLTStudio.ECWOperations
 					break;
 
 				case ECWeaverArgConsts.Operations.ExcelInfo:
-				case ECWeaverArgConsts.Operations.ExcelReplaceText:
-				case ECWeaverArgConsts.Operations.ExcelReplacePlaceholder:
 				case ECWeaverArgConsts.Operations.CsvValidate:
 				case ECWeaverArgConsts.Operations.ExcelValidate:
 				case ECWeaverArgConsts.Operations.CsvDiff:
 				case ECWeaverArgConsts.Operations.ExcelDiff:
 				case ECWeaverArgConsts.Operations.RunScript:
 					this.NotImplementedInECWeaver2(command);
+					break;
+
+				case ECWeaverArgConsts.Operations.ExcelReplaceText:
+					this.ExcelReplaceText();
+					break;
+
+				case ECWeaverArgConsts.Operations.ExcelReplacePlaceholder:
+					this.ExcelReplacePlaceholder();
 					break;
 
 				default:
@@ -149,6 +155,7 @@ namespace HLTStudio.ECWOperations
 				this.WriteOutput("Commands:");
 				this.WriteOutput("  help, version");
 				this.WriteOutput("  csv-to-excel, csvs-to-excel, excel-to-pdf, weave");
+				this.WriteOutput("  excel-replace-text, excel-replace-placeholder");
 				this.WriteOutput("  csv-info, csv-select-columns, csv-filter-rows, csv-replace");
 				this.WriteOutput("  csv-merge, csv-sort, csv-unique");
 				this.WriteOutput("  printers, print");
@@ -185,6 +192,14 @@ namespace HLTStudio.ECWOperations
 
 				case ECWeaverArgConsts.Operations.Weave:
 					this.WriteOutput("Usage: ECWeaver2.exe weave <input-csv>... --to-excel <output-excel> [--overwrite]");
+					break;
+
+				case ECWeaverArgConsts.Operations.ExcelReplaceText:
+					this.WriteOutput("Usage: ECWeaver2.exe excel-replace-text (--from <text>|--regex <pattern>) --to <text> [--sheet <name-or-index>] [--overwrite] <input-excel> <output-excel>");
+					break;
+
+				case ECWeaverArgConsts.Operations.ExcelReplacePlaceholder:
+					this.WriteOutput("Usage: ECWeaver2.exe excel-replace-placeholder (--set <placeholder=text>|--set-file <mapping-csv>) [--overwrite] <template-excel> <output-excel>");
 					break;
 
 				case ECWeaverArgConsts.Operations.CsvInfo:
@@ -563,6 +578,52 @@ namespace HLTStudio.ECWOperations
 			this.NotImplementedInECWeaver2(ECWeaverArgConsts.Operations.ExcelReplacePicture);
 		}
 
+		private void ExcelReplaceText()
+		{
+			this.CheckArgCount(2);
+			this.CheckInteropEngine();
+
+			string from = this.Args.GetOptionValue(ECWeaverArgConsts.Options.From);
+			string regex = this.Args.GetOptionValue(ECWeaverArgConsts.Options.Regex);
+			string to = this.Args.GetOptionValue(ECWeaverArgConsts.Options.To);
+
+			if ((from == null) == (regex == null))
+				throw new Exception("Specify either --from or --regex.");
+
+			if (to == null)
+				throw new Exception("--to is required.");
+
+			string inputExcel = this.Args.Arguments[0];
+			string outputExcel = this.Args.Arguments[1];
+
+			this.PrepareOutputFile(outputExcel);
+			ExcelInteropTools.ReplaceText(
+				inputExcel,
+				outputExcel,
+				new ExcelInteropTools.TextReplacement[]
+				{
+					new ExcelInteropTools.TextReplacement(from ?? regex, to, regex != null),
+				},
+				this.Args.GetOptionValue(ECWeaverArgConsts.Options.Sheet)
+				);
+		}
+
+		private void ExcelReplacePlaceholder()
+		{
+			this.CheckArgCount(2);
+			this.CheckInteropEngine();
+
+			ExcelInteropTools.TextReplacement[] replacements = this.GetPlaceholderReplacements()
+				.Select(pair => new ExcelInteropTools.TextReplacement(pair[0], pair[1], false))
+				.ToArray();
+
+			string inputExcel = this.Args.Arguments[0];
+			string outputExcel = this.Args.Arguments[1];
+
+			this.PrepareOutputFile(outputExcel);
+			ExcelInteropTools.ReplaceText(inputExcel, outputExcel, replacements);
+		}
+
 		private void Printers()
 		{
 			this.CheckArgCount(0);
@@ -802,6 +863,59 @@ namespace HLTStudio.ECWOperations
 				currentName = (safeName.Length <= maxBaseLength ? safeName : safeName.Substring(0, maxBaseLength)) + suffix;
 			}
 			return currentName;
+		}
+
+		private string[][] GetPlaceholderReplacements()
+		{
+			List<string[]> replacements = new List<string[]>();
+
+			foreach (string value in this.Args.GetOptionValues(ECWeaverArgConsts.Options.Set))
+			{
+				replacements.Add(this.ParseSetValue(value));
+			}
+
+			string setFile = this.Args.GetOptionValue(ECWeaverArgConsts.Options.SetFile);
+
+			if (setFile != null)
+			{
+				string[][] rows = this.ReadCsv(setFile);
+
+				foreach (string[] row in rows)
+				{
+					if (row.Length < 2)
+						throw new Exception("Bad --set-file row.");
+
+					replacements.Add(new string[] { row[0], row[1] });
+				}
+			}
+
+			if (replacements.Count == 0)
+				throw new Exception("Specify --set or --set-file.");
+
+			foreach (string[] replacement in replacements)
+			{
+				if (replacement[0] == "")
+					throw new Exception("Bad placeholder.");
+			}
+
+			return replacements.ToArray();
+		}
+
+		private string[] ParseSetValue(string value)
+		{
+			if (string.IsNullOrEmpty(value))
+				throw new Exception("Bad --set value.");
+
+			int delimiter = value.IndexOf('=');
+
+			if (delimiter <= 0)
+				throw new Exception("Bad --set value.");
+
+			return new string[]
+			{
+				value.Substring(0, delimiter),
+				value.Substring(delimiter + 1),
+			};
 		}
 
 		private int GetSingleColumnIndex(string[][] rows)

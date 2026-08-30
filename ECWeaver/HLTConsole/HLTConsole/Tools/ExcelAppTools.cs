@@ -950,6 +950,253 @@ finally {
 			}
 		}
 
+		public static void ReplaceText(string inputExcelFile, string outputExcelFile, string from, string to, bool regex, string sheetSelector = null)
+		{
+			ProcMain.WriteLog("ExcelAppTools.ReplaceText-ST");
+
+			if (string.IsNullOrEmpty(inputExcelFile))
+				throw new Exception("Bad inputExcelFile");
+
+			if (!File.Exists(inputExcelFile))
+				throw new Exception("Input file not found: " + inputExcelFile);
+
+			if (string.IsNullOrEmpty(outputExcelFile))
+				throw new Exception("Bad outputExcelFile");
+
+			if (SCommon.IsExistsPath(outputExcelFile))
+				throw new Exception("Output path already exists: " + outputExcelFile);
+
+			if (string.IsNullOrEmpty(from))
+				throw new Exception("Bad replacement source.");
+
+			if (to == null)
+				throw new Exception("Bad replacement destination.");
+
+			using (WorkingDir wd = new WorkingDir())
+			{
+				string scriptFile = wd.MakePath() + ".ps1";
+				string errorLogFile = wd.MakePath();
+				string successfulFile = wd.MakePath();
+
+				File.WriteAllBytes(errorLogFile, SCommon.EMPTY_BYTES);
+
+				string script = @"
+$inputExcelFile  = ""<INPUT-EXCEL-FILE>""
+$outputExcelFile = ""<OUTPUT-EXCEL-FILE>""
+$errorLogPath    = ""<ERROR-LOG-PATH>""
+$successfulFile  = ""<SUCCESSFUL-FILE>""
+$from            = '<FROM>'
+$to              = '<TO>'
+$useRegex        = <USE-REGEX>
+$sheetSelectorEnabled = <SHEET-SELECTOR-ENABLED>
+$sheetSelector        = '<SHEET-SELECTOR>'
+
+try {
+	$excel = New-Object -ComObject Excel.Application
+}
+catch {
+	""エクセルがインストールされていないか、使用できません。"" | Out-File -Encoding UTF8 -Append $errorLogPath
+	exit 1
+}
+
+$excel.Visible = $false
+$excel.DisplayAlerts = $false
+
+try {
+	$workbook = $excel.Workbooks.Open($inputExcelFile, 0, $true)
+}
+catch {
+	try {
+		$excel.Quit() | Out-Null
+	}
+	catch {
+	}
+	[void][Runtime.InteropServices.Marshal]::FinalReleaseComObject($excel)
+	$excel = $null
+
+	[System.GC]::Collect()
+	[System.GC]::WaitForPendingFinalizers()
+
+	""指定されたエクセルファイルは破損しているか、対応していない形式です。"" | Out-File -Encoding UTF8 -Append $errorLogPath
+	exit 1
+}
+
+function ReleaseCom($com) {
+	try {
+		if ($com -and [System.Runtime.InteropServices.Marshal]::IsComObject($com)) {
+			[void][System.Runtime.InteropServices.Marshal]::FinalReleaseComObject($com)
+		}
+	}
+	catch {
+	}
+}
+
+function ReplaceString($text) {
+	if ($useRegex) {
+		return [System.Text.RegularExpressions.Regex]::Replace($text, $from, $to)
+	}
+	return $text.Replace($from, $to)
+}
+
+function ReplaceInSheet($sheet) {
+	$scope = $null
+	try {
+		$scope = $sheet.UsedRange
+		$values = $scope.Value2
+
+		if ($values -is [System.Array]) {
+			$changed = $false
+
+			for ($row = $values.GetLowerBound(0); $row -le $values.GetUpperBound(0); $row++) {
+				for ($column = $values.GetLowerBound(1); $column -le $values.GetUpperBound(1); $column++) {
+					$value = $values[$row, $column]
+
+					if ($value -is [string]) {
+						$replaced = ReplaceString $value
+
+						if ($replaced -ne $value) {
+							$values[$row, $column] = $replaced
+							$changed = $true
+						}
+					}
+				}
+			}
+
+			if ($changed) {
+				$scope.Value2 = $values
+			}
+		}
+		elseif ($values -is [string]) {
+			$replaced = ReplaceString $values
+
+			if ($replaced -ne $values) {
+				$scope.Value2 = $replaced
+			}
+		}
+	}
+	finally {
+		ReleaseCom $scope
+	}
+}
+
+try {
+	if ($sheetSelectorEnabled) {
+		$sheet = $null
+
+		if ($sheetSelector -match '^[0-9]+$') {
+			$index = [int]$sheetSelector
+
+			if ($index -lt 1 -or $workbook.Worksheets.Count -lt $index) {
+				throw ""Sheet index out of range: $sheetSelector""
+			}
+			$sheet = $workbook.Worksheets.Item($index)
+		}
+		else {
+			foreach ($candidate in @($workbook.Worksheets)) {
+				try {
+					if ($candidate.Name -eq $sheetSelector) {
+						$sheet = $candidate
+						break
+					}
+				}
+				finally {
+					if ($candidate -ne $sheet) {
+						ReleaseCom $candidate
+					}
+				}
+			}
+
+			if (!$sheet) {
+				throw ""Sheet not found: $sheetSelector""
+			}
+		}
+
+		try {
+			ReplaceInSheet $sheet
+		}
+		finally {
+			ReleaseCom $sheet
+		}
+	}
+	else {
+		foreach ($sheet in @($workbook.Worksheets)) {
+			try {
+				ReplaceInSheet $sheet
+			}
+			finally {
+				ReleaseCom $sheet
+			}
+		}
+	}
+
+	$workbook.SaveAs($outputExcelFile)
+
+	New-Item -ItemType File -Path $successfulFile -Force | Out-Null
+}
+catch {
+	$_.Exception.Message | Out-File -Encoding UTF8 -Append $errorLogPath
+}
+finally {
+	try {
+		$workbook.Close($false) | Out-Null
+	} catch {
+	}
+	ReleaseCom $workbook
+	$workbook = $null
+
+	try {
+		$excel.Quit() | Out-Null
+	} catch {
+	}
+	ReleaseCom $excel
+	$excel = $null
+
+	[System.GC]::Collect()
+	[System.GC]::WaitForPendingFinalizers()
+}
+";
+
+				File.WriteAllText(
+					scriptFile,
+					script.ReplaceAll(
+						"<INPUT-EXCEL-FILE>", inputExcelFile,
+						"<OUTPUT-EXCEL-FILE>", outputExcelFile,
+						"<ERROR-LOG-PATH>", errorLogFile,
+						"<SUCCESSFUL-FILE>", successfulFile,
+						"<FROM>", ToPowerShellSingleQuotedStringContent(from),
+						"<TO>", ToPowerShellSingleQuotedStringContent(to),
+						"<USE-REGEX>", regex ? "$true" : "$false",
+						"<SHEET-SELECTOR-ENABLED>", string.IsNullOrEmpty(sheetSelector) ? "$false" : "$true",
+						"<SHEET-SELECTOR>", ToPowerShellSingleQuotedStringContent(sheetSelector ?? "")
+						),
+					Encoding.UTF8
+					);
+
+				SCommon.Batch(new string[]
+				{
+					$"PowerShell.exe -STA -ExecutionPolicy Bypass -File \"{scriptFile}\"",
+				});
+
+				string errorLog = File.ReadAllText(errorLogFile, Encoding.UTF8).Trim();
+
+				if (errorLog != "")
+					throw new Exception(errorLog);
+
+				if (!File.Exists(successfulFile))
+					throw new Exception("パワーシェルがクラッシュしたか、起動できませんでした。");
+
+				if (!File.Exists(outputExcelFile))
+					throw new Exception("no outputExcelFile");
+
+				ProcMain.WriteLog("ExcelAppTools.ReplaceText-ED");
+			}
+		}
+
+		private static string ToPowerShellSingleQuotedStringContent(string value)
+		{
+			return (value ?? "").Replace("'", "''");
+		}
+
 		private static string RP_GetRPScript(Placeholder[] placeholders, WorkingDir wd)
 		{
 			List<string> dest = new List<string>();
