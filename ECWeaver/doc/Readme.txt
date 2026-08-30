@@ -183,6 +183,38 @@ ECWeaver.exe excel-replace-picture [--index 番号] [--overwrite] 入力Excel �
 	このコマンドの --engine は auto または zip。
 
 
+ECWeaver.exe excel-replace-text (--from 文字列 | --regex 正規表現) --to 置換後 [--sheet シート] [--overwrite] 入力Excel 出力Excel
+
+	Excel ブック内のセル文字列を置換する。
+
+	--from は通常の文字列置換。
+	--regex は正規表現置換。
+	--to は置換後文字列。
+	--sheet を指定すると、指定シートだけを対象にする。
+	--sheet を省略すると、全シートを対象にする。
+	シート指定は、シート名または 1 始まりのシート番号で指定する。
+	このコマンドの --engine は auto または app。
+
+例:
+
+	ECWeaver.exe excel-replace-text --from old --to new Book.xlsx Out.xlsx
+	ECWeaver.exe excel-replace-text --regex ""Item[0-9]+"" --to ItemX Book.xlsx Out.xlsx
+
+
+ECWeaver.exe excel-replace-placeholder (--set プレースホルダ=置換後 | --set-file 置換CSV) [--overwrite] テンプレートExcel 出力Excel
+
+	Excel テンプレート内のプレースホルダを置換する。
+
+	--set は プレースホルダ=置換後 の形式で指定する。
+	--set は複数指定できる。
+	--set-file は 1 列目を置換元、2 列目を置換後として読み込む。
+	このコマンドの --engine は auto または app。
+
+例:
+
+	ECWeaver.exe excel-replace-placeholder --set ""**NAME**=山田太郎"" Template.xlsx Out.xlsx
+	ECWeaver.exe excel-replace-placeholder --set-file mapping.csv Template.xlsx Out.xlsx
+
 ECWeaver.exe printers
 
 	利用可能なプリンタ名を一覧表示する。
@@ -297,8 +329,6 @@ ECWeaver.exe csv-unique [--columns 列番号リスト | --headers ヘッダー�
 	csvs-to-excel
 	weave
 	excel-info
-	excel-replace-text
-	excel-replace-placeholder
 	csv-validate
 	excel-validate
 	csv-diff
