@@ -30,6 +30,7 @@ namespace HLTStudio.Tests
 				//SCommon.Pause_WaitSeconds = 0;
 
 				SCommon.DeleteAndCreateDir(BaseDir);
+				Directory.CreateDirectory(OutputDir);
 
 				// C:\home\res\ 配下のテストデータは永続管理するため、初回生成後は毎回作り直さない。
 				//this.PrepareTestData();
