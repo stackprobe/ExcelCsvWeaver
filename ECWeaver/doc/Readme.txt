@@ -20,6 +20,7 @@ ECWeaver.exe <コマンド> [オプション] [引数...]
 	ECWeaver.exe excel-to-csv Book.xlsx OutDir
 	ECWeaver.exe excel-to-csv --sheet Sheet1 Book.xlsx Sheet1.csv
 	ECWeaver.exe csv-select-columns --columns 1,3,5 input.csv output.csv
+	ECWeaver.exe --response args.txt
 
 
 ----
@@ -100,6 +101,14 @@ ECWeaver.exe --version
 	Excel からの読み込み、PDF、印刷では auto または app を指定できる。
 	画像抽出・画像置換では auto または zip を指定できる。
 	CSV 専用コマンドでは --engine は指定できない。
+
+--response レスポンスファイル
+
+	レスポンスファイルを読み込み、各行を1つのコマンドライン引数として扱う。
+	--response=レスポンスファイル 形式でも指定できる。
+	レスポンスファイル内に --response を記述した場合も展開する。
+	循環参照、値不足、ファイル不存在はエラーになる。
+	レスポンスファイルは SJIS のテキストファイルとして読み込む。
 
 --silent
 
@@ -257,6 +266,7 @@ ECWeaver.exe csv-select-columns (--columns 列番号リスト | --headers ヘッ
 例:
 
 	ECWeaver.exe csv-select-columns --columns 1,3,5 input.csv output.csv
+	ECWeaver.exe --response args.txt
 	ECWeaver.exe csv-select-columns --headers Code,Name,Price input.csv output.csv
 
 

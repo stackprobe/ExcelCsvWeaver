@@ -99,6 +99,14 @@ ECWeaver2.exe --version
 	Excel 作成、PDF、印刷では auto または interop を指定できる。
 	CSV 専用コマンドでは --engine は指定できない。
 
+--response レスポンスファイル
+
+	レスポンスファイルを読み込み、各行を1つのコマンドライン引数として扱う。
+	--response=レスポンスファイル 形式でも指定できる。
+	レスポンスファイル内に --response を記述した場合も展開する。
+	循環参照、値不足、ファイル不存在はエラーになる。
+	レスポンスファイルは SJIS のテキストファイルとして読み込む。
+
 --silent
 
 	通常メッセージをコンソールへ出力しない。
@@ -241,6 +249,7 @@ ECWeaver2.exe csv-select-columns (--columns 列番号リスト | --headers ヘ�
 例:
 
 	ECWeaver2.exe csv-select-columns --columns 1,3,5 input.csv output.csv
+	ECWeaver2.exe --response args.txt
 	ECWeaver2.exe csv-select-columns --headers Code,Name,Price input.csv output.csv
 
 
