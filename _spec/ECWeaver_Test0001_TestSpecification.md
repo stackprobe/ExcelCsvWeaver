@@ -107,6 +107,7 @@ ID,Name,Price,Category
 - `utf8bom.csv`: UTF-8 BOM 入出力用
 - `merge/001.csv`, `merge/002.csv`: ファイル名順結合用
 - `merge/only.part`: `--pattern` 指定用
+追加のレスポンスファイルテストでは、作業ディレクトリ配下に `response.txt` と `response-equals.txt` を作成する。
 
 ECWeaver 固有テストでは、`.xlsx` を ZIP として作成し、`xl/media/image1.png` などの画像エントリを持つ最小ワークブックを使用する。
 
@@ -121,6 +122,14 @@ ECWeaver2 固有テストでは、`excel-sheets/alpha.csv`, `excel-sheets/beta.c
 - `version` がツール名付きのバージョンを出力すること。
 - 未知コマンドが `Unknown command` を含む例外になること。
 - 各ツールで未実装のコマンドが未実装エラーになること。
+
+### レスポンスファイル
+
+- `--response <file>` で、レスポンスファイル内の各行を引数列として読み込めること。
+- `--response=<file>` 形式でも同じ結果になること。
+- レスポンスファイル経由で `csv-select-columns` を実行し、通常指定と同じ CSV が出力されること。
+- `--response` の値不足をエラーにすること。
+- 存在しないレスポンスファイル指定をエラーにすること。
 
 ### csv-info
 

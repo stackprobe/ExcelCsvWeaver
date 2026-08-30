@@ -67,6 +67,8 @@ Excel 入力混在、`--to-csv-dir`、`--to-same-dir`、加工パイプライン
 Excel 未インストール環境で動作できるのは、CSV 専用コマンドと `ECWeaver` の `ExcelTools` を使う ZIP / Open XML 直接操作系である。
 `ExcelAppTools` または `ExcelInteropTools` を使う処理は Excel が利用できる環境を必要とする。
 
+`--response` によるレスポンスファイル展開は、`ECWeaver` と `ECWeaver2` の両方で実装済みである。
+
 ## 既存ツールの位置づけ
 
 ### ExcelAppTools
@@ -202,11 +204,14 @@ ECWeaver2.exe <command> [options] <input> <output>
 --delimiter <comma|tab|space|char>
 --sheet <name-or-index>
 --range <A1:D20>
+--response <file>
 --input-list <file>
 --log <file>
 --silent
 --verbose
 ```
+
+`--response` は 1 行 1 引数のレスポンスファイルを読み込み、通常のコマンドライン引数と同じ規則で解析する。`--response=file` 形式も受け付ける。
 
 ## 変換系コマンド
 
