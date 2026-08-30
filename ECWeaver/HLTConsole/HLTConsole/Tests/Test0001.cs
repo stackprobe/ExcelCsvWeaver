@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Text;
 using HLTStudio.Commons;
 using HLTStudio.ECWArguments;
@@ -32,6 +33,8 @@ namespace HLTStudio.Tests
 
 				// C:\home\res\ 配下のテストデータは永続管理するため、初回生成後は毎回作り直さない。
 				//this.PrepareTestData();
+				if (!File.Exists(this.InputFile("text-replace.xlsx")) || !File.Exists(this.InputFile("placeholder-map.csv")))
+					this.PrepareTestData();
 
 				this.TestHelpVersionAndCommandErrors();
 				this.TestCsvInfoCountsRowsAndColumns();
@@ -46,6 +49,7 @@ namespace HLTStudio.Tests
 				this.TestCsvUniqueRemovesDuplicateRowsAndKeys();
 				this.TestDelimiterAndEncodingOptions();
 				this.TestOverwriteProtection();
+				this.TestExcelReplaceTextAndPlaceholder();
 				this.TestExcelExtractPicturesByZipEngine();
 				this.TestExcelReplacePictureByZipEngine();
 				this.TestZipEngineCommandsRejectBadOptions();
@@ -507,6 +511,44 @@ namespace HLTStudio.Tests
 		}
 
 		/// <summary>
+		/// Excel 文字列置換とプレースホルダ置換の正常系・異常系を確認する。
+		/// </summary>
+		private void TestExcelReplaceTextAndPlaceholder()
+		{
+			string replaceOutput = this.OutputFile("excel-replace-text.xlsx");
+			string regexOutput = this.OutputFile("excel-replace-regex.xlsx");
+			string sheetOutput = this.OutputFile("excel-replace-sheet.xlsx");
+			string placeholderOutput = this.OutputFile("excel-replace-placeholder.xlsx");
+			string setFileOutput = this.OutputFile("excel-replace-placeholder-set-file.xlsx");
+			string existingOutput = this.OutputFile("excel-replace-existing.xlsx");
+
+			this.Run(new string[] { "excel-replace-text", "--from", "Apple", "--to", "Orange", this.InputFile("text-replace.xlsx"), replaceOutput });
+			this.AssertWorkbookContains(replaceOutput, "Orange", "excel replace text");
+
+			this.Run(new string[] { "excel-replace-text", "--regex", "Item[0-9]+", "--to", "ItemX", this.InputFile("text-replace.xlsx"), regexOutput });
+			this.AssertWorkbookContains(regexOutput, "ItemX", "excel replace regex");
+
+			this.Run(new string[] { "excel-replace-text", "--sheet", "Target", "--from", "SheetOnly", "--to", "ChangedSheet", this.InputFile("text-replace.xlsx"), sheetOutput });
+			this.AssertWorkbookContains(sheetOutput, "ChangedSheet", "excel replace text sheet");
+			this.AssertWorkbookContains(sheetOutput, "SheetOnly", "excel replace text other sheet");
+
+			this.Run(new string[] { "excel-replace-placeholder", "--set", "**NAME**=Yamada", "--set", "**CITY**=Tokyo", this.InputFile("text-replace.xlsx"), placeholderOutput });
+			this.AssertWorkbookContains(placeholderOutput, "Yamada", "excel replace placeholder name");
+			this.AssertWorkbookContains(placeholderOutput, "Tokyo", "excel replace placeholder city");
+
+			this.Run(new string[] { "excel-replace-placeholder", "--set-file", this.InputFile("placeholder-map.csv"), this.InputFile("text-replace.xlsx"), setFileOutput });
+			this.AssertWorkbookContains(setFileOutput, "Suzuki", "excel replace placeholder set file name");
+			this.AssertWorkbookContains(setFileOutput, "Osaka", "excel replace placeholder set file city");
+
+			File.WriteAllText(existingOutput, "already exists", this.Sjis);
+
+			this.AssertThrows(() => this.Run(new string[] { "excel-replace-text", "--from", "Apple", "--regex", "Apple", "--to", "Orange", this.InputFile("text-replace.xlsx"), this.OutputFile("excel-replace-both.xlsx") }), "Specify either --from or --regex.");
+			this.AssertThrows(() => this.Run(new string[] { "excel-replace-text", "--from", "Apple", this.InputFile("text-replace.xlsx"), this.OutputFile("excel-replace-no-to.xlsx") }), "--to is required.");
+			this.AssertThrows(() => this.Run(new string[] { "excel-replace-placeholder", this.InputFile("text-replace.xlsx"), this.OutputFile("excel-replace-no-set.xlsx") }), "Specify --set or --set-file.");
+			this.AssertThrows(() => this.Run(new string[] { "excel-replace-text", "--from", "Apple", "--to", "Orange", this.InputFile("text-replace.xlsx"), existingOutput }), "Output path already exists");
+		}
+
+		/// <summary>
 		/// excel-extract-pictures が xlsx ZIP 内の画像だけを抽出し、連番ファイルとして保存することを確認する。
 		/// </summary>
 		private void TestExcelExtractPicturesByZipEngine()
@@ -689,6 +731,17 @@ namespace HLTStudio.Tests
 
 			File.WriteAllBytes(this.InputFile("replacement.png"), new byte[] { 9, 8, 7, 6 });
 			this.CreatePictureWorkbook(this.InputFile("pictures.xlsx"));
+			this.CreateTextWorkbook(this.InputFile("text-replace.xlsx"));
+			this.WriteCsv(
+				this.InputFile("placeholder-map.csv"),
+				new string[][]
+				{
+					new string[] { "**NAME**", "Suzuki" },
+					new string[] { "**CITY**", "Osaka" },
+				},
+				this.Sjis,
+				','
+				);
 		}
 
 		private void Run(string[] args)
@@ -756,6 +809,49 @@ namespace HLTStudio.Tests
 				this.WriteZipEntry(archive, "xl/media/image1.png", new byte[] { 1, 2, 3, 4 });
 				this.WriteZipEntry(archive, "xl/media/image2.jpg", new byte[] { 5, 6, 7, 8 });
 				this.WriteZipEntry(archive, "xl/media/readme.txt", new byte[] { 0 });
+			}
+		}
+
+		private void CreateTextWorkbook(string file)
+		{
+			string dir = Path.GetDirectoryName(file);
+
+			if (!Directory.Exists(dir))
+				Directory.CreateDirectory(dir);
+
+			if (File.Exists(file))
+				File.Delete(file);
+
+			using (ZipArchive archive = ZipFile.Open(file, ZipArchiveMode.Create))
+			{
+				this.WriteZipEntry(archive, "[Content_Types].xml", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\"><Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/><Default Extension=\"xml\" ContentType=\"application/xml\"/><Override PartName=\"/xl/workbook.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml\"/><Override PartName=\"/xl/worksheets/sheet1.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml\"/><Override PartName=\"/xl/worksheets/sheet2.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml\"/></Types>");
+				this.WriteZipEntry(archive, "_rels/.rels", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument\" Target=\"xl/workbook.xml\"/></Relationships>");
+				this.WriteZipEntry(archive, "xl/_rels/workbook.xml.rels", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet\" Target=\"worksheets/sheet1.xml\"/><Relationship Id=\"rId2\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet\" Target=\"worksheets/sheet2.xml\"/></Relationships>");
+				this.WriteZipEntry(archive, "xl/workbook.xml", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><workbook xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\"><sheets><sheet name=\"Main\" sheetId=\"1\" r:id=\"rId1\"/><sheet name=\"Target\" sheetId=\"2\" r:id=\"rId2\"/></sheets></workbook>");
+				this.WriteZipEntry(archive, "xl/worksheets/sheet1.xml", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"><sheetData><row r=\"1\"><c r=\"A1\" t=\"inlineStr\"><is><t>Apple</t></is></c><c r=\"B1\" t=\"inlineStr\"><is><t>Item123</t></is></c><c r=\"C1\" t=\"inlineStr\"><is><t>**NAME**</t></is></c><c r=\"D1\" t=\"inlineStr\"><is><t>SheetOnly</t></is></c></row></sheetData></worksheet>");
+				this.WriteZipEntry(archive, "xl/worksheets/sheet2.xml", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"><sheetData><row r=\"1\"><c r=\"A1\" t=\"inlineStr\"><is><t>Apple</t></is></c><c r=\"B1\" t=\"inlineStr\"><is><t>**CITY**</t></is></c><c r=\"C1\" t=\"inlineStr\"><is><t>SheetOnly</t></is></c></row></sheetData></worksheet>");
+			}
+		}
+
+		private void AssertWorkbookContains(string file, string expectedPart, string message)
+		{
+			using (ZipArchive archive = ZipFile.OpenRead(file))
+			{
+				string text = string.Join("\n", archive.Entries
+					.Where(entry => entry.FullName.StartsWith("xl/") && entry.FullName.EndsWith(".xml"))
+					.Select(entry => this.ReadZipEntryText(entry))
+					.ToArray());
+
+				this.AssertContains(text, expectedPart, message);
+			}
+		}
+
+		private string ReadZipEntryText(ZipArchiveEntry entry)
+		{
+			using (Stream stream = entry.Open())
+			using (StreamReader reader = new StreamReader(stream, Encoding.UTF8))
+			{
+				return reader.ReadToEnd();
 			}
 		}
 
