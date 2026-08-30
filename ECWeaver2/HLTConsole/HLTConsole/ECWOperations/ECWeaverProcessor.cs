@@ -164,6 +164,7 @@ namespace HLTStudio.ECWOperations
 				this.WriteOutput("  --overwrite");
 				this.WriteOutput("  --encoding auto|sjis|utf8|utf8bom|utf16le");
 				this.WriteOutput("  --delimiter comma|tab|space|<char>");
+				this.WriteOutput("  --response <file>");
 				this.WriteOutput("  --silent");
 				return;
 			}

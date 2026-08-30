@@ -37,6 +37,7 @@ namespace HLTStudio.Tests
 					this.PrepareTestData();
 
 				this.TestHelpVersionAndCommandErrors();
+				this.TestResponseFileOption();
 				this.TestCsvInfoCountsRowsAndColumns();
 				this.TestCsvSelectColumnsByIndexesAndHeaders();
 				this.TestCsvSelectColumnsRejectsBadOptions();
@@ -82,6 +83,63 @@ namespace HLTStudio.Tests
 			this.AssertThrows(() => this.Run(new string[] { "not-a-command" }), "Unknown command");
 			this.AssertThrows(() => this.Run(new string[] { "excel-to-csv", this.InputFile("basic.csv"), this.OutputFile("not-implemented.csv") }), "not implemented in ECWeaver2");
 			this.AssertThrows(() => this.Run(new string[] { "excel-extract-pictures", this.InputFile("basic.csv"), this.OutputFile("pictures") }), "not implemented in ECWeaver2");
+		}
+
+		private void TestResponseFileOption()
+		{
+			string responseFile = this.OutputFile("response.txt");
+			string responseEqualsFile = this.OutputFile("response-equals.txt");
+			string output = this.OutputFile("response-select.csv");
+			string equalsOutput = this.OutputFile("response-equals-select.csv");
+
+			File.WriteAllLines(responseFile, new string[]
+			{
+				"csv-select-columns",
+				"--columns",
+				"1,3",
+				this.InputFile("basic.csv"),
+				output,
+			}, this.Sjis);
+
+			this.Run(new string[] { "--response", responseFile });
+			this.AssertRows(
+				new string[][]
+				{
+					new string[] { "ID", "Price" },
+					new string[] { "1", "100" },
+					new string[] { "2", "200" },
+					new string[] { "3", "150" },
+					new string[] { "4", "200" },
+				},
+				this.ReadCsv(output),
+				"response file"
+				);
+
+			File.WriteAllLines(responseEqualsFile, new string[]
+			{
+				"csv-select-columns",
+				"--headers",
+				"Name,Category",
+				this.InputFile("basic.csv"),
+				equalsOutput,
+			}, this.Sjis);
+
+			this.Run(new string[] { "--response=" + responseEqualsFile });
+			this.AssertRows(
+				new string[][]
+				{
+					new string[] { "Name", "Category" },
+					new string[] { "Apple", "Fruit" },
+					new string[] { "Carrot", "Vegetable" },
+					new string[] { "Banana", "Fruit" },
+					new string[] { "Apple", "Fruit" },
+				},
+				this.ReadCsv(equalsOutput),
+				"response file equals"
+				);
+
+			this.AssertThrows(() => this.Run(new string[] { "--response" }), "Missing command line option value: --response");
+			this.AssertThrows(() => this.Run(new string[] { "--response", this.OutputFile("missing-response.txt") }), "Response file not found");
 		}
 
 		/// <summary>

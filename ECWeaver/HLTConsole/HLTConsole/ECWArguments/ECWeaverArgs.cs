@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using HLTStudio.Commons;
 
@@ -47,6 +48,7 @@ namespace HLTStudio.ECWArguments
 			}
 			ar.End();
 
+			args.ExpandResponseFiles();
 			args.ReadRawArgs();
 			args.NormalizePathArgs();
 			return args;
@@ -133,6 +135,54 @@ namespace HLTStudio.ECWArguments
 				this._options.Add(name, values);
 			}
 			values.Add(value);
+		}
+
+		private void ExpandResponseFiles()
+		{
+			string[] expandedArgs = ExpandResponseFiles(this._rawArgs.ToArray(), new List<string>());
+
+			this._rawArgs.Clear();
+			this._rawArgs.AddRange(expandedArgs);
+		}
+
+		private static string[] ExpandResponseFiles(string[] rawArgs, List<string> responseFileStack)
+		{
+			List<string> expandedArgs = new List<string>();
+
+			for (int index = 0; index < rawArgs.Length; index++)
+			{
+				string responseFile;
+				bool hasValue;
+
+				if (TryGetResponseFile(rawArgs[index], out responseFile, out hasValue))
+				{
+					if (!hasValue)
+					{
+						if (rawArgs.Length <= index + 1)
+							throw new Exception("Missing command line option value: " + ECWeaverArgConsts.OptionPrefix + ECWeaverArgConsts.Options.Response);
+
+						responseFile = rawArgs[++index];
+					}
+					if (string.IsNullOrEmpty(responseFile))
+						throw new Exception("Missing command line option value: " + ECWeaverArgConsts.OptionPrefix + ECWeaverArgConsts.Options.Response);
+
+					string fullResponseFile = SCommon.MakeFullPath(responseFile);
+
+					if (responseFileStack.Any(v => v.EqualsIgnoreCase(fullResponseFile)))
+						throw new Exception("Circular response file reference: " + fullResponseFile);
+					if (!File.Exists(fullResponseFile))
+						throw new Exception("Response file not found: " + fullResponseFile);
+
+					responseFileStack.Add(fullResponseFile);
+					expandedArgs.AddRange(ExpandResponseFiles(File.ReadAllLines(fullResponseFile, SCommon.ENCODING_SJIS), responseFileStack));
+					responseFileStack.RemoveAt(responseFileStack.Count - 1);
+				}
+				else
+				{
+					expandedArgs.Add(rawArgs[index]);
+				}
+			}
+			return expandedArgs.ToArray();
 		}
 
 		private void NormalizePathArgs()
@@ -248,6 +298,20 @@ namespace HLTStudio.ECWArguments
 
 			if (name.Length == 0)
 				throw new Exception("Bad command line option: " + token);
+		}
+
+		private static bool TryGetResponseFile(string token, out string responseFile, out bool hasValue)
+		{
+			responseFile = null;
+			hasValue = false;
+
+			if (!IsOptionToken(token))
+				return false;
+
+			string name;
+
+			SplitOptionToken(token, out name, out responseFile, out hasValue);
+			return name.EqualsIgnoreCase(ECWeaverArgConsts.Options.Response);
 		}
 
 	}

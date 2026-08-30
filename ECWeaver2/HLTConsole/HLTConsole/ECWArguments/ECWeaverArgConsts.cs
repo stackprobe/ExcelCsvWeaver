@@ -10,6 +10,7 @@
 			Options.Encoding,
 			Options.Delimiter,
 			Options.Newline,
+			Options.Response,
 			Options.InputList,
 			Options.Log,
 			Options.Sheet,
@@ -116,6 +117,7 @@
 			public const string Encoding = "encoding";
 			public const string Delimiter = "delimiter";
 			public const string Newline = "newline";
+			public const string Response = "response";
 			public const string InputList = "input-list";
 			public const string Log = "log";
 			public const string Silent = "silent";
