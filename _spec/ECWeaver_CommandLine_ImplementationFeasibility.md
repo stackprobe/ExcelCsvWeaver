@@ -41,8 +41,8 @@
 | `excel-info` | ECWeaver | `LoadSheets` と `ExcelTools` を組み合わせやすい。 |
 | `excel-extract-pictures` | ECWeaver | `ExcelTools.CollectPicture` が最適。 |
 | `excel-replace-picture` | ECWeaver | `ExcelTools.ReplacePicture` が最適。 |
-| `excel-replace-text` | ECWeaver | `.xlsx` ZIP 内部 XML 置換が自然。 |
-| `excel-replace-placeholder` | ECWeaver | `ExcelAppTools.ReplacePlaceholder` が既にある。 |
+| `excel-replace-text` | 共通 | `ECWeaver` は `ExcelAppTools`、`ECWeaver2` は `ExcelInteropTools` 経由で実装可能。必要に応じて `.xlsx` ZIP 内部 XML 置換も選択肢にできる。 |
+| `excel-replace-placeholder` | 共通 | `ECWeaver` には `ExcelAppTools.ReplacePlaceholder` が既にあり、`ECWeaver2` も `ExcelInteropTools` 側へ同等処理を追加すれば実装可能。 |
 | `csv-validate` | 共通 | CSV Reader だけで実装可能。 |
 | `excel-validate` | ECWeaver | app / zip の両方式で検査しやすい。 |
 | `csv-diff` | 共通 | CSV Reader/Writer だけで実装可能。 |
@@ -93,6 +93,7 @@ excel-diff
 run-script
 ```
 
+`excel-replace-text` と `excel-replace-placeholder` は未実装だが、実装方針は `ECWeaver` / `ECWeaver2` の両対応とする。
 `excel-extract-pictures` と `excel-replace-picture` は `ExcelTools` を使うため Excel は不要。
 それ以外の Excel 読み込み、PDF、印刷、プリンタ一覧は `ExcelAppTools` を使う。
 
@@ -136,6 +137,7 @@ excel-diff
 run-script
 ```
 
+`excel-replace-text` と `excel-replace-placeholder` は未実装だが、実装方針は `ECWeaver` / `ECWeaver2` の両対応とする。
 `weave` は `--to-excel` のみ実装済み。
 入力は `.csv`、`.tsv`、`.ssv` に限り、Excel 入力混在、`--to-csv-dir`、`--to-same-dir` は未実装。
 

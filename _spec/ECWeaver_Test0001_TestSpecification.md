@@ -188,6 +188,18 @@ ECWeaver2 固有テストでは、`excel-sheets/alpha.csv`, `excel-sheets/beta.c
 - 出力先が存在する場合、`--overwrite` なしでは失敗すること。
 - `--overwrite` ありでは既存出力先を置き換えられること。
 
+### Excel 文字列置換系
+
+`excel-replace-text` と `excel-replace-placeholder` は、ECWeaver と ECWeaver2 の両方で同じ引数仕様として検証する。
+
+- `excel-replace-text --from --to` で XLSX 内のセル文字列を置換できること。
+- `excel-replace-text --regex --to` で XLSX 内のセル文字列を正規表現置換できること。
+- `excel-replace-text --sheet` で指定シートだけを置換できること。
+- `excel-replace-placeholder --set` で `**NAME**` 形式のプレースホルダを置換できること。
+- `excel-replace-placeholder --set` を複数指定できること。
+- `excel-replace-placeholder --set-file` で置換マッピングを読み込めること。
+- 入力 Excel なし、置換指定不足、`--from` と `--regex` の同時指定、出力先存在をエラーにすること。
+
 ## ECWeaver 固有テスト項目
 
 ECWeaver は、Excel 画像操作系の ZIP 直操作コマンドを検証する。

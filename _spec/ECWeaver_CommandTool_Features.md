@@ -443,13 +443,32 @@ Excel ブック内の文字列を置換する。
 
 ```txt
 ECWeaver.exe excel-replace-text --from "**NAME**" --to "山田太郎" template.xlsx output.xlsx
+ECWeaver2.exe excel-replace-text --from "**NAME**" --to "山田太郎" template.xlsx output.xlsx
 ```
 
 仕様:
 
-- `ExcelAppTools.ReplacePlaceholder` を土台にする。
-- プレースホルダ形式だけでなく通常文字列置換も追加候補にする。
+- `ECWeaver` と `ECWeaver2` の両方で実装する。
+- `ECWeaver` は `ExcelAppTools`、`ECWeaver2` は `ExcelInteropTools` を土台にする。
+- プレースホルダ形式だけでなく通常文字列置換にも対応する。
 - フォントや背景色の指定は追加オプションとして扱う。
+
+### excel-replace-placeholder
+
+Excel テンプレート内の `**NAME**` 形式のプレースホルダを置換する。
+
+```txt
+ECWeaver.exe excel-replace-placeholder --set "**NAME**=山田太郎" template.xlsx output.xlsx
+ECWeaver2.exe excel-replace-placeholder --set "**NAME**=山田太郎" template.xlsx output.xlsx
+```
+
+仕様:
+
+- `ECWeaver` と `ECWeaver2` の両方で実装する。
+- `--set` は複数指定可能にする。
+- `--set-file` は 1 列目を置換元、2 列目を置換先として扱う。
+- `ECWeaver` は既存の `ExcelAppTools.ReplacePlaceholder` を実装素材として利用できる。
+- `ECWeaver2` は `ExcelInteropTools` へ同等機能を追加する。
 
 ### excel-replace-picture
 

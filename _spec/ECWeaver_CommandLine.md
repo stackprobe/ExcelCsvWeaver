@@ -915,6 +915,7 @@ Excel ブック内の文字列を置換する。
 
 ```txt
 ECWeaver.exe excel-replace-text [options] <input-excel> <output-excel>
+ECWeaver2.exe excel-replace-text [options] <input-excel> <output-excel>
 ```
 
 対応 engine:
@@ -938,9 +939,12 @@ zip
 
 仕様:
 
+- 実装先は `ECWeaver` と `ECWeaver2` の両方とする。
 - 通常置換では `--from` と `--to` を必須とする。
 - 正規表現置換では `--regex` と `--to` を必須とする。
+- `app` / `interop` は Excel アプリケーション経由でブックを開き、表示上のセル文字列を置換する。
 - `zip` は `.xlsx` 内部 XML 文字列置換として扱うため、表示結果の完全保証はしない。
+- 初期実装では `--sheet` 未指定時に全シートを対象とし、`--sheet` 指定時に指定シートだけを対象とする。
 
 ### excel-replace-placeholder
 
@@ -948,6 +952,7 @@ Excel テンプレート内の `**NAME**` 形式のプレースホルダを置�
 
 ```txt
 ECWeaver.exe excel-replace-placeholder [options] <template-excel> <output-excel>
+ECWeaver2.exe excel-replace-placeholder [options] <template-excel> <output-excel>
 ```
 
 対応 engine:
@@ -973,8 +978,13 @@ ECWeaver.exe excel-replace-placeholder --set "**NAME**=山田太郎" template.xl
 
 仕様:
 
+- 実装先は `ECWeaver` と `ECWeaver2` の両方とする。
 - `--set` は複数指定可能にする。
 - `--set-file` は 1 列目を置換元、2 列目を置換先として扱う。
+- `--set` と `--set-file` の少なくとも一方を必須とする。
+- `app` / `interop` は Excel アプリケーション経由でブックを開き、表示上のセル文字列を置換する。
+- `ECWeaver` では既存の `ExcelAppTools.ReplacePlaceholder` を実装素材として利用できる。
+- `ECWeaver2` では `ExcelInteropTools` 側へ同等処理を追加し、`ECWeaver` と同じ引数仕様にする。
 
 ## 検査・比較系
 
