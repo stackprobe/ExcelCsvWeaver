@@ -20,6 +20,10 @@ namespace HLTStudio.Tools
 			: this(file, GetFileEncoding(file))
 		{ }
 
+		public CsvFileReader(string file, char delimiter)
+			: this(file, GetFileEncoding(file), delimiter)
+		{ }
+
 		public CsvFileReader(string file, Encoding encoding)
 			: this(file, encoding, DELIMITER_COMMA)
 		{ }
