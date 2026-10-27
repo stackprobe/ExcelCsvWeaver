@@ -13,9 +13,9 @@ namespace HLTStudio.Tests
 	public class Test0001
 	{
 #if DEBUG
-		private const string ResourceDir = @"..\..\..\..\..\TestData\ECWeaver\Test0001";
+		private static readonly string ResourceDir = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\..\..\TestData\ECWeaver\Test0001"));
 		private const string BaseDir = @"C:\temp\ECWeaver";
-		private const string InputDir = ResourceDir + @"\input";
+		private static readonly string InputDir = Path.Combine(ResourceDir, "input");
 		private const string OutputDir = BaseDir + @"\output";
 
 		private readonly Encoding Sjis = Encoding.GetEncoding(932);
@@ -32,10 +32,9 @@ namespace HLTStudio.Tests
 				SCommon.DeleteAndCreateDir(BaseDir);
 				Directory.CreateDirectory(OutputDir);
 
-				// C:\home\res\ 配下のテストデータは永続管理するため、初回生成後は毎回作り直さない。
+				// TestData 配下は Git 管理するため、テスト実行時に自動で再生成しない。
+				// 再生成が必要な場合だけ、次の行を一時的に有効にする。
 				//this.PrepareTestData();
-				if (!File.Exists(this.InputFile("text-replace.xlsx")) || !File.Exists(this.InputFile("placeholder-map.csv")))
-					this.PrepareTestData();
 
 				this.TestHelpVersionAndCommandErrors();
 				this.TestResponseFileOption();

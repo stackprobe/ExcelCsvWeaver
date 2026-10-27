@@ -15,6 +15,7 @@ ExcelCsvWeaver/
   ECWeaver2/
   ECWeaverGUI/
   Installer/
+  TestData/
   MakeDistribution.bat
 ```
 
@@ -71,6 +72,12 @@ GUI 側は、ユーザー入力を受け取り、対応する CUI コマンド�
 インストーラプログラム。
 
 インストール処理を担当する。現状では完成済みとみなし、通常の機能追加や仕様変更では基本的に触らない想定である。
+
+## TestData
+
+テスト入力データを Git で管理するフォルダ。`ECWeaver/Test0001/input/` と `ECWeaver2/Test0001/input/` に各ツールの固定テストデータを置く。
+
+テスト実行時は実行ファイルの場所からの相対パスで参照し、クローン先や起動時のカレントディレクトリに依存しない。テスト出力はここへ保存せず、テスト仕様書に定める作業ディレクトリへ保存する。
 
 ## MakeDistribution.bat
 

@@ -42,15 +42,17 @@ new Test0001().Test01();
 
 ## ディレクトリ仕様
 
-テストデータは永続領域に置く。
+テストデータはリポジトリ直下の `TestData` 配下に置き、Git で管理する。以下のパスはリポジトリルートからの相対パスである。
 
 ```txt
 ECWeaver:
-C:\home\res\ExcelCsvWeaver\ECWeaver\Test0001
+TestData\ECWeaver\Test0001
 
 ECWeaver2:
-C:\home\res\ExcelCsvWeaver\ECWeaver2\Test0001
+TestData\ECWeaver2\Test0001
 ```
+
+実装では、実行ファイルのある `ECWeaver/HLTConsole/HLTConsole/bin/Debug/`（ECWeaver2 も同様）を基準に、`..\..\..\..\..\TestData\<ツール名>\Test0001` を解決する。起動時のカレントディレクトリやクローン先の絶対パスには依存しない。
 
 作業ディレクトリは毎回削除して作り直す。
 
@@ -68,7 +70,7 @@ C:\temp\ECWeaver2
 SCommon.DeleteAndCreateDir(BaseDir);
 ```
 
-`C:\home\res` 配下のテストデータは永続管理するため、現在の実装では `PrepareTestData()` 呼び出しをコメントアウトしている。テストデータを再生成したい場合は、一時的にコメントアウトを解除して実行する。
+`TestData` 配下のテストデータは Git で管理するため、`PrepareTestData()` 呼び出しはコメントアウトし、データ不足時にも自動再生成しない。テストデータを再生成したい場合は、一時的にコメントアウトを解除して実行する。この処理は対象ツールの `Test0001` ディレクトリを削除して再生成するため、実行後はコメントアウトを戻し、Git の差分を確認する。
 
 `SCommon.Pause_WaitSeconds = 0;` もコメントアウトしている。F5 実行時にコンソールがすぐ閉じると結果を確認しづらいためである。
 
@@ -268,7 +270,7 @@ ECWeaver2 では `excel-to-csv` と `excel-extract-pictures` を未実装コマ�
 
 ## 実行環境上の注意
 
-`C:\temp` と `C:\home\res` 配下への書き込み権限が必要である。
+通常のテスト実行では、リポジトリ内の `TestData` 配下の読み取り権限と、作業ディレクトリである `C:\temp` 配下への書き込み権限が必要である。テストデータを手動で再生成する場合のみ、`TestData` 配下への書き込み権限も必要になる。
 
 ECWeaver2 の Excel 出力系は既存実装が Microsoft Excel Interop を使用するため、実行環境に Microsoft Excel が必要になる可能性がある。ただし、テスト検証自体は目視ではなく、生成された `.xlsx` を ZIP として開く自動検証で行う。
 
