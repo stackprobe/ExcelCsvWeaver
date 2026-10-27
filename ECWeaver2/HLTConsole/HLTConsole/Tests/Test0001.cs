@@ -13,7 +13,7 @@ namespace HLTStudio.Tests
 	public class Test0001
 	{
 #if DEBUG
-		private const string ResourceDir = @"C:\home\res\ExcelCsvWeaver\ECWeaver2\Test0001";
+		private const string ResourceDir = @"..\..\..\..\..\TestData\ECWeaver2\Test0001";
 		private const string BaseDir = @"C:\temp\ECWeaver2";
 		private const string InputDir = ResourceDir + @"\input";
 		private const string OutputDir = BaseDir + @"\output";
